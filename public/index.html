@@ -230,6 +230,373 @@
   </div>
 
   <!-- ═══════════════════════════════════════════════════════
+       SCREEN: TUTORIAL (NOOBIES GUIDE IN EASY TAMIL)
+  ════════════════════════════════════════════════════════ -->
+  <div id="screen-tutorial" class="screen hidden">
+    <div class="tutorial-wrapper">
+
+      <!-- Tutorial Header -->
+      <header class="tutorial-header">
+        <div class="tutorial-header-left">
+          <button id="tutorial-back-btn" class="btn btn-secondary btn-sm" aria-label="Go back">
+            ← Thirumba Vaa (Back)
+          </button>
+          <div class="tutorial-title-group">
+            <span class="eyebrow">NOOBIE-GALUKKANA QUICK GUIDE</span>
+            <h1 class="tutorial-title">Chain Reaction Epdi Aadradhu? 💀💥</h1>
+          </div>
+        </div>
+        <button id="tutorial-start-playing-btn" class="btn btn-primary btn-sm">
+          Purinjiduchu! Aada Polaam →
+        </button>
+      </header>
+
+      <!-- Step Navigation Stepper Bar -->
+      <nav class="tutorial-stepper" aria-label="Tutorial Steps">
+        <button class="step-nav-btn active" data-step="1">
+          <span class="step-num">1</span>
+          <span class="step-name">Orbs Vekkardhu</span>
+        </button>
+        <button class="step-nav-btn" data-step="2">
+          <span class="step-num">2</span>
+          <span class="step-name">Critical Mass 💥</span>
+        </button>
+        <button class="step-nav-btn" data-step="3">
+          <span class="step-num">3</span>
+          <span class="step-name">Enemy Capture 🏴‍☠️</span>
+        </button>
+        <button class="step-nav-btn" data-step="4">
+          <span class="step-num">4</span>
+          <span class="step-name">Chain Blast ⚡️</span>
+        </button>
+        <button class="step-nav-btn" data-step="5">
+          <span class="step-num">5</span>
+          <span class="step-name">Out & Winner 👑</span>
+        </button>
+        <button class="step-nav-btn" data-step="6">
+          <span class="step-num">💡</span>
+          <span class="step-name">Pro Tips</span>
+        </button>
+      </nav>
+
+      <!-- Step Content Area -->
+      <div class="tutorial-content-card">
+
+        <!-- STEP 1: BASICS -->
+        <section class="tutorial-step-pane active" id="pane-step-1">
+          <div class="step-badge-row">
+            <span class="step-pill">STEP 01</span>
+            <span class="step-subheading">AATATHODA BASE-U</span>
+          </div>
+          <h2 class="step-heading">Un Color Orb-a Board-la Vai!</h2>
+          <p class="step-desc">
+            Romba simple da baadu! Ovvoru turn-layum ungalukku oru chance kedaikkum.
+            Board-la irukura <strong>kaaliyaana cell</strong> (empty cell) layo,
+            illa already <strong>unga color orb</strong> irukura cell layo click panni
+            un node-a podanum.
+          </p>
+          <div class="tutorial-visual-box">
+            <div class="demo-cell-pair">
+              <div class="demo-cell-wrapper">
+                <div class="demo-cell demo-empty">
+                  <span class="demo-caption">Kaali Cell (Empty)</span>
+                  <span class="demo-action-tag">Click Pannu 👉</span>
+                </div>
+              </div>
+              <div class="demo-arrow">➔</div>
+              <div class="demo-cell-wrapper">
+                <div class="demo-cell demo-owned p1-theme">
+                  <div class="orb-cluster cluster-1">
+                    <span class="orb orb-1"></span>
+                  </div>
+                  <span class="demo-caption">1 Orb Podiyaachu!</span>
+                  <span class="demo-status-tag success">UN CONTROL!</span>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="warning-callout">
+            <span class="callout-icon">⚠️</span>
+            <div class="callout-text">
+              <strong>JAAGRATHAI (WARNING):</strong> Ethiri oda color irukura cell-la poi direct-a click panna koodadhu!
+              Click pannina <em>"Dei baadu, adhu vera aaloda cell-u da!"</em> nu rejection vanthurum.
+            </div>
+          </div>
+        </section>
+
+        <!-- STEP 2: CRITICAL MASS -->
+        <section class="tutorial-step-pane" id="pane-step-2">
+          <div class="step-badge-row">
+            <span class="step-pill">STEP 02</span>
+            <span class="step-subheading">MAIN SECRET</span>
+          </div>
+          <h2 class="step-heading">Critical Mass (Vedikkira Limit 💥)</h2>
+          <p class="step-desc">
+            Board-la irukura ovvoru cell-kum oru <strong>"Thangura Limit"</strong> (Critical Mass) irukku.
+            Andha cell-ku ethana pakkatthu neighbors (borders) irukko, adhudhaan adhodha limit!
+            Limit vandhuduchuna... <strong>PADAAR-NU VEDIKKUM!</strong>
+          </p>
+
+          <div class="cm-grid">
+            <!-- Corner -->
+            <div class="cm-card corner-card">
+              <div class="cm-card-header">
+                <span class="cm-tag">MOOLA (CORNER)</span>
+                <span class="cm-limit">LIMIT: 2 ORBS</span>
+              </div>
+              <div class="demo-cell p1-theme">
+                <div class="orb-cluster cluster-2">
+                  <span class="orb orb-1"></span>
+                  <span class="orb orb-2"></span>
+                </div>
+              </div>
+              <p class="cm-note">
+                2 borders dhaan irukku. <strong>2nd orb vecha udane</strong> left/right/top/down-la 2 pakkamum sithari vedichidum!
+              </p>
+            </div>
+
+            <!-- Edge -->
+            <div class="cm-card edge-card">
+              <div class="cm-card-header">
+                <span class="cm-tag">VARAIMBU (EDGE)</span>
+                <span class="cm-limit">LIMIT: 3 ORBS</span>
+              </div>
+              <div class="demo-cell p2-theme">
+                <div class="orb-cluster cluster-3">
+                  <span class="orb orb-1"></span>
+                  <span class="orb orb-2"></span>
+                  <span class="orb orb-3"></span>
+                </div>
+              </div>
+              <p class="cm-note">
+                3 borders irukku. <strong>3rd orb vandhuduchuna</strong> moonu direction-layum blast aagi orbs split aagidum!
+              </p>
+            </div>
+
+            <!-- Center -->
+            <div class="cm-card center-card">
+              <div class="cm-card-header">
+                <span class="cm-tag">NADU CELL (CENTER)</span>
+                <span class="cm-limit">LIMIT: 4 ORBS</span>
+              </div>
+              <div class="demo-cell p3-theme">
+                <div class="orb-cluster cluster-4">
+                  <span class="orb orb-1"></span>
+                  <span class="orb orb-2"></span>
+                  <span class="orb orb-3"></span>
+                  <span class="orb orb-4"></span>
+                </div>
+              </div>
+              <p class="cm-note">
+                4 borders irukku (Mela, Keela, Left, Right). <strong>4th orb vandha</strong> naalu pakkamum nuclear blast!
+              </p>
+            </div>
+          </div>
+        </section>
+
+        <!-- STEP 3: ENEMY CAPTURE -->
+        <section class="tutorial-step-pane" id="pane-step-3">
+          <div class="step-badge-row">
+            <span class="step-pill">STEP 03</span>
+            <span class="step-subheading">KABALEEGARAM</span>
+          </div>
+          <h2 class="step-heading">Ethiri Area-va Neeye Swaha Pannu! 🏴‍☠️</h2>
+          <p class="step-desc">
+            Idhudhan aatathoda semma fun! Un cell vedichu pakkathu cell-la vizhum bodhu,
+            anga ethiri oda color orbs evlo irundhaalum sari...
+            <strong>Instant-a UNGA COLOR-ku convert aayidum!</strong>
+          </p>
+
+          <div class="tutorial-visual-box">
+            <div class="capture-flow">
+              <div class="flow-col">
+                <span class="flow-label">BEFORE BLAST:</span>
+                <div class="mini-cluster-row">
+                  <div class="demo-cell p1-theme demo-mini">
+                    <span class="sub-label">Un Corner (Green)</span>
+                    <div class="orb-cluster cluster-2">
+                      <span class="orb orb-1"></span><span class="orb orb-2"></span>
+                    </div>
+                  </div>
+                  <span class="flow-plus">+</span>
+                  <div class="demo-cell p2-theme demo-mini">
+                    <span class="sub-label">Opponent (Magenta)</span>
+                    <div class="orb-cluster cluster-2">
+                      <span class="orb orb-1"></span><span class="orb orb-2"></span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="flow-arrow-col">
+                <span class="blast-badge">💥 BLAST!</span>
+                ➔
+              </div>
+
+              <div class="flow-col">
+                <span class="flow-label">AFTER BLAST:</span>
+                <div class="mini-cluster-row">
+                  <div class="demo-cell p1-theme demo-mini">
+                    <span class="sub-label">Un Corner (Kaali)</span>
+                  </div>
+                  <span class="flow-plus">➔</span>
+                  <div class="demo-cell p1-theme demo-mini converted-glow">
+                    <span class="sub-label">Avan Cell-um GREEN! 👑</span>
+                    <div class="orb-cluster cluster-3">
+                      <span class="orb orb-1"></span><span class="orb orb-2"></span><span class="orb orb-3"></span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <p class="step-takeaway">
+            Avan kashtapattu sethu vacha orbs ellam ore second-la un asset aayidum da!
+          </p>
+        </section>
+
+        <!-- STEP 4: CHAIN REACTION -->
+        <section class="tutorial-step-pane" id="pane-step-4">
+          <div class="step-badge-row">
+            <span class="step-pill">STEP 04</span>
+            <span class="step-subheading">SAMBAVAM</span>
+          </div>
+          <h2 class="step-heading">Chain Reaction (Mega Multi-Combo Blast ⚡️💥)</h2>
+          <p class="step-desc">
+            Indha game-ku yen "Chain Reaction"-nu peru vechaanga theriyuma?
+            Oru cell blast aagi pakkathu cell-ku pogum bodhu, andha cell-um limit thaanduna adhum vedikkum!
+            Adhu innoru cell-a trigger pannum... ipdi <strong>Dominoes maari serial blast</strong> aagum!
+          </p>
+
+          <div class="chain-reaction-diagram">
+            <div class="chain-step-node">
+              <span class="node-num">1</span>
+              <span class="node-text">Un cell blast aagudhu</span>
+            </div>
+            <div class="chain-connector">➔</div>
+            <div class="chain-step-node">
+              <span class="node-num">2</span>
+              <span class="node-text">Pakkathu cell limit thaandudhu</span>
+            </div>
+            <div class="chain-connector">➔</div>
+            <div class="chain-step-node">
+              <span class="node-num">3</span>
+              <span class="node-text">Adhum thirumba blast aagudhu</span>
+            </div>
+            <div class="chain-connector">➔</div>
+            <div class="chain-step-node highlight">
+              <span class="node-num">💥</span>
+              <span class="node-text">Motha board-e katharudhu!</span>
+            </div>
+          </div>
+          <div class="quote-callout">
+            "Ore oru move... motha aatame thala keezha maari un kaila vandhudum da baadu!"
+          </div>
+        </section>
+
+        <!-- STEP 5: ELIMINATION & WINNING -->
+        <section class="tutorial-step-pane" id="pane-step-5">
+          <div class="step-badge-row">
+            <span class="step-pill">STEP 05</span>
+            <span class="step-subheading">VICTORY CONDITIONS</span>
+          </div>
+          <h2 class="step-heading">Yaar Out? Yaar Jeippa? 👑</h2>
+          
+          <div class="rules-duo">
+            <div class="rule-box rule-elimination">
+              <div class="rule-title-row">
+                <span class="rule-icon">💀</span>
+                <h3>GAALI (ELIMINATION)</h3>
+              </div>
+              <p>
+                <strong>Round 1 (Grace Period):</strong> Modhal round-la ellarukum oru chance irukku. Adhula yaarum out aaga maataanga.
+              </p>
+              <p>
+                <strong>Round 2 mudhal:</strong> Un turn vandhuttapprom, un color orb board-la <strong>0 aana... NEE GAALI!</strong>
+                Aatam mudinjiduchu nu oodanum.
+              </p>
+            </div>
+
+            <div class="rule-box rule-victory">
+              <div class="rule-title-row">
+                <span class="rule-icon">👑</span>
+                <h3>VETRI (VICTORY)</h3>
+              </div>
+              <p>
+                Matha ellarum eliminate aagi, board-la <strong>UN COLOR mattum thalaviya ninna</strong>...
+                othaa neenga dhaan CHAMPION!
+              </p>
+              <p>
+                <strong>Wipeout Rule:</strong> Matha ellathayum ore blast-la zero aakita instantaneous-a victory declare aagidum!
+              </p>
+            </div>
+          </div>
+        </section>
+
+        <!-- STEP 6: PRO TIPS -->
+        <section class="tutorial-step-pane" id="pane-step-6">
+          <div class="step-badge-row">
+            <span class="step-pill">BONUS</span>
+            <span class="step-subheading">THALA LEVEL HACKS</span>
+          </div>
+          <h2 class="step-heading">Noobie To Pro: Semma Tips 🧠</h2>
+
+          <div class="tips-list">
+            <div class="tip-item">
+              <span class="tip-badge">TIP #1</span>
+              <div>
+                <h4>Corner dhaan Raja 👑</h4>
+                <p>Corner cells-la 2 orbs-laye blast aagidum. Early game-la eppovum corner-a cover pannu. Romba safe and offensive.</p>
+              </div>
+            </div>
+            <div class="tip-item">
+              <span class="tip-badge">TIP #2</span>
+              <div>
+                <h4>Vera aaloda blast zone-la poi sikkadha! 🚫</h4>
+                <p>Ethiri corner-la 1 orb vechu ready-a irundha, pakkathu cell-la poi orb-a vekkaadha. Avan 2nd orb vecha unnayum sethu thookiduvaan.</p>
+              </div>
+            </div>
+            <div class="tip-item">
+              <span class="tip-badge">TIP #3</span>
+              <div>
+                <h4>Critical Mass-1 Stage-la Load Panni Vai 🔋</h4>
+                <p>Cells-a blast aagura boundary-la (Corner-la 1, Edge-la 2, Center-la 3) load panni vainga. Right opportunity kedaikkum bodhu ore oru orb podu... motha rajyamum unnodadhu!</p>
+              </div>
+            </div>
+            <div class="tip-item">
+              <span class="tip-badge">TIP #4</span>
+              <div>
+                <h4>8-Player Chaos Mode Alert! 🚨</h4>
+                <p>8 peru aadrappo board bayangarama congested-a irukkum. Oru chinna blast kooda tsunami maari suthura ellarayum wipeout pannidum!</p>
+              </div>
+            </div>
+          </div>
+        </section>
+
+      </div>
+
+      <!-- Tutorial Navigation Footer Controls -->
+      <footer class="tutorial-footer-controls">
+        <button id="tutorial-prev-step-btn" class="btn btn-secondary btn-sm" disabled>
+          ← Munnaadi Step
+        </button>
+        <div class="tutorial-dots-indicator" id="tutorial-dots">
+          <span class="dot active" data-step="1"></span>
+          <span class="dot" data-step="2"></span>
+          <span class="dot" data-step="3"></span>
+          <span class="dot" data-step="4"></span>
+          <span class="dot" data-step="5"></span>
+          <span class="dot" data-step="6"></span>
+        </div>
+        <button id="tutorial-next-step-btn" class="btn btn-primary btn-sm">
+          Adutha Step →
+        </button>
+      </footer>
+
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════════
        SCREEN: GAME OVER
   ════════════════════════════════════════════════════════ -->
   <div id="screen-gameover" class="screen hidden">
