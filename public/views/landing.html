@@ -1,72 +1,147 @@
 <div id="screen-landing" class="screen active">
   <div class="screen-inner landing-inner">
 
+    <!-- Hero Branding -->
     <header class="branding-area">
       <div class="brand-glyph" aria-hidden="true">
         <span class="glyph-core"></span>
         <span class="glyph-ring"></span>
       </div>
       <h1 class="game-title">Chain Reaction</h1>
-      <p class="game-subtitle">motha board-um blast aaga pogudhu &middot; 2&ndash;8 aalunga</p>
+      <p class="game-subtitle">Tamil Friends 2 AM Chaos &middot; Explosive Chain Reactions</p>
+      <div class="hero-badges">
+        <span class="hero-badge badge-green">💥 Kissa Sambavam Da</span>
+        <span class="hero-badge badge-cyan">🎮 2&ndash;8 Aalunga</span>
+      </div>
     </header>
 
-    <div class="panel main-panel">
-      <!-- Rejoin Match Banner -->
-      <div id="resume-banner" class="resume-banner hidden">
-        <div class="resume-content">
-          <span class="resume-badge">LIVE MATCH FOUND ⚡</span>
-          <p id="resume-text" class="resume-text">Ongoing match detected in room: <strong id="resume-code"></strong></p>
-        </div>
-        <div class="resume-actions">
-          <button id="resume-btn" class="btn btn-primary btn-sm">Thirumba Ulla Vaa (Rejoin)</button>
-          <button id="discard-session-btn" class="btn btn-secondary btn-sm">Discard</button>
-        </div>
+    <!-- Rejoin Match Banner (Shows only if active session exists) -->
+    <div id="resume-banner" class="resume-banner hidden">
+      <div class="resume-content">
+        <span class="resume-badge">LIVE MATCH FOUND ⚡</span>
+        <p id="resume-text" class="resume-text">Active match detected in room: <strong id="resume-code"></strong></p>
       </div>
-
-      <!-- Player Name Input -->
-      <div class="form-group">
-        <label for="player-name">Dei Un Peru Ennada?</label>
-        <input id="player-name" type="text" maxlength="20"
-               placeholder="Un per-a type pannu da baadu..." autocomplete="off" spellcheck="false" />
-      </div>
-
-      <!-- Action Button Stack -->
-      <div class="btn-stack">
-        <button id="create-room-btn" class="btn btn-primary">
-          <span class="btn-indicator"></span>
-          Pudhu Room Poga.....
-        </button>
-
-        <a href="local.html" class="btn btn-primary" style="background: rgba(45, 254, 84, 0.15); border: 1px solid var(--accent-green); color: var(--accent-green); text-decoration: none; text-align: center; display: flex; align-items: center; justify-content: center; gap: 8px;">
-          <span>📱 Orey Mobile-la Aada (Local Pass &amp; Play)</span>
-        </a>
-
-        <button id="show-join-btn" class="btn btn-secondary">
-          Friend Room-ku Poga (Join)
-        </button>
-
-        <a href="tutorial.html" id="show-tutorial-btn" class="btn btn-tutorial" style="text-decoration:none; display:flex; align-items:center; justify-content:center;">
-          📖 Epdi Aadradhu? (Noobies Guide)
-        </a>
-      </div>
-
-      <!-- Join Room Section (Accordion) -->
-      <div id="join-section" class="join-section hidden">
-        <div class="form-group">
-          <label for="join-code">Room Code-a Thattu da</label>
-          <input id="join-code" type="text" maxlength="6"
-                 placeholder="XXXXXX" autocomplete="off"
-                 spellcheck="false" class="code-input" />
-        </div>
-        <button id="join-room-btn" class="btn btn-primary full-width">
-          Ulla Vaa Da!
-        </button>
+      <div class="resume-actions">
+        <button id="resume-btn" class="btn btn-primary btn-sm">Thirumba Ulla Vaa (Rejoin)</button>
+        <button id="discard-session-btn" class="btn btn-secondary btn-sm">Discard</button>
       </div>
     </div>
 
-    <footer class="manifesto-hint">
-      <span class="hint-dot"></span>
-      <span>Critical mass aana motha edamum sitharidum da baadu! 💀</span>
+    <!-- Mode Selector Cards: The Core Choice -->
+    <div class="modes-container">
+
+      <!-- MODE 1: Local Pass & Play (1 Mobile) -->
+      <section class="mode-card local-mode-card">
+        <div class="mode-card-header">
+          <div class="mode-icon-circle">📱</div>
+          <div class="mode-header-text">
+            <div class="mode-title-row">
+              <h2 class="mode-title">Orey Mobile-la Play</h2>
+              <span class="mode-chip chip-offline">Onna Okkandhu OOmbu</span>
+            </div>
+            <p class="mode-desc">Friends kooda pakathula ukkandhu orey phone-la maathi maathi podunga!</p>
+          </div>
+        </div>
+        <div class="mode-card-footer">
+          <div class="mode-perks">
+            <span>✓ 2–8 Players</span>
+            <span>✓ Joint &amp; Ciggaretes</span>
+            <span>✓ Instant Play</span>
+          </div>
+          <a href="local.html" class="btn btn-mode-local" id="btn-go-local">
+            <span>OOmbu (PASS &amp; PLAY) 📱</span>
+          </a>
+        </div>
+      </section>
+
+      <!-- MODE 2: Online Multiplayer (Different Mobiles via Code) -->
+      <section class="mode-card online-mode-card">
+        <div class="mode-card-header">
+          <div class="mode-icon-circle">🌐</div>
+          <div class="mode-header-text">
+            <div class="mode-title-row">
+              <h2 class="mode-title">Online-la Friends Kooda</h2>
+              <span class="mode-chip chip-online">ONLINE ARENA</span>
+            </div>
+            <p class="mode-desc">WhatsApp-la code anupi vera vera mobile-la irundhu gaali pannunga!</p>
+          </div>
+        </div>
+
+        <!-- Segmented Tab Switcher: Create Room vs Join Room -->
+        <div class="online-tabs" role="tablist">
+          <button type="button" id="tab-create-room" class="tab-btn active" role="tab" aria-selected="true">
+            <span>➕ Pudhu Room (Create)</span>
+          </button>
+          <button type="button" id="tab-join-room" class="tab-btn" role="tab" aria-selected="false">
+            <span>🔑 Code Podu (Join)</span>
+          </button>
+        </div>
+
+        <!-- Online Panel Content -->
+        <div class="online-content">
+          <!-- Common: Player Name Input -->
+          <div class="form-group name-form-group">
+            <label for="player-name">Gomma Un Peru Ennada?</label>
+            <div class="input-wrapper">
+              <span class="input-icon">👤</span>
+              <input id="player-name" type="text" maxlength="20"
+                     placeholder="Un per-a type pannu (e.g. Rolex, Dhanush)..."
+                     autocomplete="off" spellcheck="false" />
+            </div>
+          </div>
+
+          <!-- Create Room Form View -->
+          <div id="create-view" class="tab-view active">
+            <button id="create-room-btn" class="btn btn-primary full-width">
+              <span class="btn-indicator"></span>
+              Pudhu Room Start Pannu ⚡
+            </button>
+          </div>
+
+          <!-- Join Room Form View -->
+          <div id="join-view" class="tab-view hidden">
+            <div class="form-group code-form-group">
+              <label for="join-code">6-Letter Room Code</label>
+              <div class="input-wrapper">
+                <span class="input-icon">🔑</span>
+                <input id="join-code" type="text" maxlength="6"
+                       placeholder="XXXXXX" autocomplete="off"
+                       spellcheck="false" class="code-input" />
+              </div>
+            </div>
+            <button id="join-room-btn" class="btn btn-primary full-width">
+              Room-ku Ulla Po! 🎮
+            </button>
+          </div>
+        </div>
+      </section>
+
+    </div>
+
+    <!-- Quick How-To-Play Guide Teaser for Newbies -->
+    <section class="quick-guide-card">
+      <div class="quick-guide-header">
+        <span class="quick-guide-badge">📖 PUDHUSA VARRIYA? (HOW TO PLAY)</span>
+        <a href="tutorial.html" class="quick-guide-link">Motha Guide ➜</a>
+      </div>
+      <div class="quick-rules-grid">
+        <div class="rule-item">
+          <span class="rule-icon">🟢</span>
+          <div class="rule-text"><strong>1. Thodunga</strong><br/>Empty cell-la orb podunga</div>
+        </div>
+        <div class="rule-item">
+          <span class="rule-icon">💥</span>
+          <div class="rule-text"><strong>2. Blast</strong><br/>Limit vandhum bomb blast aagum</div>
+        </div>
+        <div class="rule-item">
+          <span class="rule-icon">👑</span>
+          <div class="rule-text"><strong>3. Conquer</strong><br/>Motha color-um maathi jeinga!</div>
+        </div>
+      </div>
+    </section>
+
+    <footer class="landing-footer">
+      <span>Chain Reaction &bull; Motha Sambavam Da 💀</span>
     </footer>
 
   </div>

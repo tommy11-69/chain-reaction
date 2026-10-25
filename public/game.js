@@ -710,15 +710,83 @@ function initUI() {
     }
   });
 
-  // Landing
-  $('create-room-btn').addEventListener('click', createRoom);
-  $('show-join-btn').addEventListener('click', toggleJoinSection);
-  $('join-room-btn').addEventListener('click', joinRoom);
-  $('player-name').addEventListener('keydown', e => { if (e.key === 'Enter') createRoom(); });
-  $('join-code').addEventListener('keydown',   e => { if (e.key === 'Enter') joinRoom(); });
-  $('join-code').addEventListener('input',     e => {
-    e.target.value = e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, '');
-  });
+  // Settings Modal Handlers
+  const openSettingsBtn = $('btn-open-settings');
+  const closeSettingsBtn = $('btn-close-settings');
+  const doneSettingsBtn = $('btn-done-settings');
+  const modalSettings = $('modal-settings');
+
+  const showSettings = () => { if (modalSettings) modalSettings.classList.remove('hidden'); };
+  const hideSettings = () => { if (modalSettings) modalSettings.classList.add('hidden'); };
+
+  if (openSettingsBtn) openSettingsBtn.addEventListener('click', showSettings);
+  if (closeSettingsBtn) closeSettingsBtn.addEventListener('click', hideSettings);
+  if (doneSettingsBtn) doneSettingsBtn.addEventListener('click', hideSettings);
+  if (modalSettings) {
+    modalSettings.addEventListener('click', e => {
+      if (e.target === modalSettings) hideSettings();
+    });
+  }
+
+  // Landing Segmented Mode Tabs (Create vs Join)
+  const tabCreate = $('tab-create-room');
+  const tabJoin = $('tab-join-room');
+  const createView = $('create-view');
+  const joinView = $('join-view');
+
+  if (tabCreate && tabJoin) {
+    tabCreate.addEventListener('click', () => {
+      tabCreate.classList.add('active');
+      tabCreate.setAttribute('aria-selected', 'true');
+      tabJoin.classList.remove('active');
+      tabJoin.setAttribute('aria-selected', 'false');
+      if (createView) createView.classList.remove('hidden');
+      if (joinView) joinView.classList.add('hidden');
+    });
+
+    tabJoin.addEventListener('click', () => {
+      tabJoin.classList.add('active');
+      tabJoin.setAttribute('aria-selected', 'true');
+      tabCreate.classList.remove('active');
+      tabCreate.setAttribute('aria-selected', 'false');
+      if (joinView) {
+        joinView.classList.remove('hidden');
+        const codeInput = $('join-code');
+        if (codeInput) setTimeout(() => codeInput.focus(), 60);
+      }
+      if (createView) createView.classList.add('hidden');
+    });
+  }
+
+  // Landing Actions
+  if ($('create-room-btn')) $('create-room-btn').addEventListener('click', createRoom);
+  if ($('show-join-btn')) $('show-join-btn').addEventListener('click', toggleJoinSection);
+  if ($('join-room-btn')) $('join-room-btn').addEventListener('click', joinRoom);
+
+  if ($('player-name')) {
+    $('player-name').addEventListener('keydown', e => {
+      if (e.key === 'Enter') {
+        const isJoinActive = joinView && !joinView.classList.contains('hidden');
+        if (isJoinActive) {
+          const codeInput = $('join-code');
+          if (codeInput && codeInput.value.trim().length === 6) {
+            joinRoom();
+          } else if (codeInput) {
+            codeInput.focus();
+          }
+        } else {
+          createRoom();
+        }
+      }
+    });
+  }
+
+  if ($('join-code')) {
+    $('join-code').addEventListener('keydown', e => { if (e.key === 'Enter') joinRoom(); });
+    $('join-code').addEventListener('input', e => {
+      e.target.value = e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, '');
+    });
+  }
 
   // Lobby
   $('copy-code-btn').addEventListener('click', copyRoomCode);
@@ -903,9 +971,16 @@ function createRoom() {
 }
 
 function toggleJoinSection() {
+  const tabJoin = $('tab-join-room');
+  if (tabJoin) {
+    tabJoin.click();
+    return;
+  }
   const sec = $('join-section');
-  sec.classList.toggle('hidden');
-  if (!sec.classList.contains('hidden')) $('join-code').focus();
+  if (sec) {
+    sec.classList.toggle('hidden');
+    if (!sec.classList.contains('hidden') && $('join-code')) $('join-code').focus();
+  }
 }
 
 function joinRoom() {

@@ -19,27 +19,20 @@
   <!-- Film Grain Overlay -->
   <div class="film-grain" aria-hidden="true"></div>
 
-  <!-- Global Utility Controls (Sound, Motion, Slang Mode, Standalone Guide) -->
+  <!-- Global Utility Controls (Minimalist Top Bar) -->
   <nav class="global-utils" aria-label="Settings">
-    <button id="slang-toggle-btn" class="util-btn" title="Gaali Mode On/Off" aria-label="Toggle Slang Mode">
-      <span class="util-dot active" id="slang-dot"></span>
-      <span id="slang-label">Gaali: On</span>
-    </button>
-    <button id="freq-toggle-btn" class="util-btn" title="Roast Frequency" aria-label="Slang Frequency">
-      <span id="freq-label">Roast: Med</span>
-    </button>
-    <button id="audio-toggle-btn" class="util-btn" title="Satham On/Off" aria-label="Toggle audio">
-      <span class="util-dot" id="audio-dot"></span>
-      <span id="audio-label">Satham: Off</span>
-    </button>
-    <button id="motion-toggle-btn" class="util-btn" title="VFX Level" aria-label="Toggle motion effects">
-      <span class="util-dot active" id="motion-dot"></span>
-      <span id="motion-label">FX: Vera Level</span>
-    </button>
     <a href="tutorial.html" id="util-tutorial-btn" class="util-btn util-guide" title="Epdi Aadradhu? (Tutorial)" aria-label="Tutorial Guide" style="text-decoration:none;">
       <span class="util-dot active" style="background:var(--accent-cyan);box-shadow:0 0 6px var(--accent-cyan)"></span>
       <span id="guide-label">Guide 📖</span>
     </a>
+    <button id="audio-toggle-btn" class="util-btn" title="Satham On/Off" aria-label="Toggle audio">
+      <span class="util-dot" id="audio-dot"></span>
+      <span id="audio-label">Satham: Off</span>
+    </button>
+    <button id="btn-open-settings" class="util-btn" title="Amaiypu / Settings" aria-label="Open Settings">
+      <span class="util-icon">⚙️</span>
+      <span>Amaiypu</span>
+    </button>
   </nav>
 
   <!-- Notification Toast -->
@@ -71,6 +64,64 @@
         </button>
         <button id="modal-confirm-exit-btn" class="btn btn-secondary btn-danger">
           Kelamburaen Da (Exit Anyway)
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════════
+       SETTINGS MODAL (AMAIPPU)
+  ════════════════════════════════════════════════════════ -->
+  <div id="modal-settings" class="modal-backdrop hidden" role="dialog" aria-modal="true" aria-labelledby="modal-settings-title">
+    <div class="modal-card settings-modal-card">
+      <div class="modal-header">
+        <div class="modal-title-group">
+          <span class="modal-icon">⚙️</span>
+          <h3 id="modal-settings-title" class="modal-title">Amaiypu &middot; Settings</h3>
+        </div>
+        <button id="btn-close-settings" class="tray-close-btn" aria-label="Close Settings">✕</button>
+      </div>
+
+      <div class="settings-list">
+        <!-- Gaali Mode Toggle -->
+        <div class="settings-row">
+          <div class="settings-info">
+            <span class="settings-label">Gaali Roast Mode (Tamil Slangs)</span>
+            <span class="settings-hint">Elimination &amp; wipeout roasts</span>
+          </div>
+          <button id="slang-toggle-btn" class="util-btn" title="Gaali Mode On/Off" aria-label="Toggle Slang Mode">
+            <span class="util-dot active" id="slang-dot"></span>
+            <span id="slang-label">Gaali: On</span>
+          </button>
+        </div>
+
+        <!-- Roast Frequency -->
+        <div class="settings-row">
+          <div class="settings-info">
+            <span class="settings-label">Roast Intensity</span>
+            <span class="settings-hint">Attack level of commentary</span>
+          </div>
+          <button id="freq-toggle-btn" class="util-btn" title="Roast Frequency" aria-label="Slang Frequency">
+            <span id="freq-label">Roast: Med</span>
+          </button>
+        </div>
+
+        <!-- VFX Animations -->
+        <div class="settings-row">
+          <div class="settings-info">
+            <span class="settings-label">VFX Motion &amp; Glow</span>
+            <span class="settings-hint">Luminous particle waves</span>
+          </div>
+          <button id="motion-toggle-btn" class="util-btn" title="VFX Level" aria-label="Toggle motion effects">
+            <span class="util-dot active" id="motion-dot"></span>
+            <span id="motion-label">FX: Vera Level</span>
+          </button>
+        </div>
+      </div>
+
+      <div class="modal-actions">
+        <button id="btn-done-settings" class="btn btn-primary full-width">
+          Sari Da, Mudinjiduchu! ✓
         </button>
       </div>
     </div>
