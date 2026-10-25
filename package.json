@@ -1,11 +1,11 @@
-﻿{
+{
   "name": "chain-reaction",
   "version": "1.0.0",
   "description": "Browser-based multiplayer Chain Reaction strategy game",
   "main": "src/server/server.js",
   "scripts": {
     "start": "node src/server/server.js",
-    "test": "node --test src/engine/GameEngine.test.js"
+    "test": "node --test src/engine/GameEngine.test.js src/server/commentaryEngine.test.js"
   },
   "engines": {
     "node": ">=18.0.0"
