@@ -1,0 +1,73 @@
+<div id="screen-landing" class="screen active">
+  <div class="screen-inner landing-inner">
+
+    <header class="branding-area">
+      <div class="brand-glyph" aria-hidden="true">
+        <span class="glyph-core"></span>
+        <span class="glyph-ring"></span>
+      </div>
+      <h1 class="game-title">Chain Reaction</h1>
+      <p class="game-subtitle">motha board-um blast aaga pogudhu &middot; 2&ndash;8 aalunga</p>
+    </header>
+
+    <div class="panel main-panel">
+      <!-- Rejoin Match Banner -->
+      <div id="resume-banner" class="resume-banner hidden">
+        <div class="resume-content">
+          <span class="resume-badge">LIVE MATCH FOUND ⚡</span>
+          <p id="resume-text" class="resume-text">Ongoing match detected in room: <strong id="resume-code"></strong></p>
+        </div>
+        <div class="resume-actions">
+          <button id="resume-btn" class="btn btn-primary btn-sm">Thirumba Ulla Vaa (Rejoin)</button>
+          <button id="discard-session-btn" class="btn btn-secondary btn-sm">Discard</button>
+        </div>
+      </div>
+
+      <!-- Player Name Input -->
+      <div class="form-group">
+        <label for="player-name">Dei Un Peru Ennada?</label>
+        <input id="player-name" type="text" maxlength="20"
+               placeholder="Un per-a type pannu da baadu..." autocomplete="off" spellcheck="false" />
+      </div>
+
+      <!-- Action Button Stack -->
+      <div class="btn-stack">
+        <button id="create-room-btn" class="btn btn-primary">
+          <span class="btn-indicator"></span>
+          Pudhu Room Poga.....
+        </button>
+
+        <a href="local.html" class="btn btn-primary" style="background: rgba(45, 254, 84, 0.15); border: 1px solid var(--accent-green); color: var(--accent-green); text-decoration: none; text-align: center; display: flex; align-items: center; justify-content: center; gap: 8px;">
+          <span>📱 Orey Mobile-la Aada (Local Pass &amp; Play)</span>
+        </a>
+
+        <button id="show-join-btn" class="btn btn-secondary">
+          Friend Room-ku Poga (Join)
+        </button>
+
+        <a href="tutorial.html" id="show-tutorial-btn" class="btn btn-tutorial" style="text-decoration:none; display:flex; align-items:center; justify-content:center;">
+          📖 Epdi Aadradhu? (Noobies Guide)
+        </a>
+      </div>
+
+      <!-- Join Room Section (Accordion) -->
+      <div id="join-section" class="join-section hidden">
+        <div class="form-group">
+          <label for="join-code">Room Code-a Thattu da</label>
+          <input id="join-code" type="text" maxlength="6"
+                 placeholder="XXXXXX" autocomplete="off"
+                 spellcheck="false" class="code-input" />
+        </div>
+        <button id="join-room-btn" class="btn btn-primary full-width">
+          Ulla Vaa Da!
+        </button>
+      </div>
+    </div>
+
+    <footer class="manifesto-hint">
+      <span class="hint-dot"></span>
+      <span>Critical mass aana motha edamum sitharidum da baadu! 💀</span>
+    </footer>
+
+  </div>
+</div>

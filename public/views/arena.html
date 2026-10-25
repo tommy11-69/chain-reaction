@@ -1,0 +1,77 @@
+<div id="screen-game" class="screen hidden">
+  <div class="game-layout">
+
+    <!-- Minimal In-Game Top Bar -->
+    <header class="game-topbar">
+      <div class="topbar-left">
+        <span class="topbar-brand">CHAIN REACTION</span>
+        <div class="topbar-room" id="game-room-badge" title="Room Code-a Copy Pannu">
+          <span class="topbar-label">ROOM-U</span>
+          <span id="game-room-code-display" class="topbar-code">——</span>
+        </div>
+        <span id="network-badge" class="network-badge live" title="Network status">
+          <span class="net-dot"></span> LIVE
+        </span>
+      </div>
+
+      <div id="turn-indicator" class="turn-indicator">
+        <span class="turn-pulse-beacon"></span>
+        <span class="turn-dot"></span>
+        <span class="turn-text">—</span>
+      </div>
+
+      <div class="topbar-right">
+        <button id="ingame-slang-btn" class="hud-pill-btn" title="Gaali Mode On/Off" aria-label="Toggle Slang Mode">
+          <span class="hud-pill-dot active" id="ingame-slang-dot"></span>
+          <span id="ingame-slang-text">GAALI: ON</span>
+        </button>
+        <button id="ingame-freq-btn" class="hud-pill-btn" title="Roast Frequency" aria-label="Slang Frequency">
+          <span id="ingame-freq-text">ROAST: MED</span>
+        </button>
+        <button id="ingame-sound-btn" class="hud-pill-btn" title="Satham On/Off" aria-label="Toggle audio">
+          <span class="hud-pill-dot" id="ingame-sound-dot"></span>
+          <span id="ingame-sound-text">SATHAM</span>
+        </button>
+        <a href="tutorial.html" target="_blank" id="ingame-help-btn" class="hud-pill-btn" title="Aata Vidhi (Rules)" aria-label="Game Rules" style="text-decoration:none;">
+          <span class="hud-pill-dot active" style="background:var(--accent-cyan);box-shadow:0 0 5px var(--accent-cyan)"></span>
+          <span>VAZHI 📖</span>
+        </a>
+        <button id="ingame-exit-btn" class="hud-pill-btn exit-pill-btn" title="Aatathai vittu veliya po" aria-label="Exit Game">
+          <span class="hud-pill-dot" style="background:#ff4d4d;box-shadow:0 0 5px #ff4d4d"></span>
+          <span>EXIT ✕</span>
+        </button>
+      </div>
+    </header>
+
+    <!-- Main Game Arena -->
+    <div class="game-body">
+
+      <!-- Left HUD: Player Roster & Orb Tally -->
+      <aside class="game-sidebar" aria-label="Players">
+        <div class="sidebar-header">
+          <span class="sidebar-label">AATAKARANGA</span>
+        </div>
+        <div id="game-players-list" class="game-players-list"></div>
+      </aside>
+
+      <!-- Center: Minimal Physical Board Surface -->
+      <main class="board-wrapper">
+        <div class="board-frame" id="board-frame">
+          <div id="game-board" class="game-board" role="grid" aria-label="Chain Reaction board"></div>
+          <!-- Canvas Overlay for Luminous Energy Waves & Trails -->
+          <canvas id="fx-canvas" class="fx-canvas" aria-hidden="true"></canvas>
+        </div>
+      </main>
+
+    </div>
+
+    <!-- Floating Commentary / Gaali Roast Banner -->
+    <div id="commentary-banner" class="commentary-banner hidden" role="status" aria-live="polite">
+      <div class="commentary-header">
+        <span class="commentary-badge">💀 GAALI VIBE</span>
+        <span class="commentary-category" id="commentary-category">REACTION</span>
+      </div>
+      <p class="commentary-text" id="commentary-text"></p>
+    </div>
+  </div>
+</div>

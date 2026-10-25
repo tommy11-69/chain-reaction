@@ -1,0 +1,60 @@
+<div id="screen-lobby" class="screen hidden">
+  <div class="screen-inner">
+    <div class="panel lobby-panel">
+
+      <!-- Lobby Header -->
+      <div class="lobby-header">
+        <div>
+          <span class="eyebrow">AATATHUKKU READY-A?</span>
+          <h2 class="section-title">Lobby-la Wait Pannu da Baadu</h2>
+        </div>
+        <div class="room-code-block">
+          <span class="room-code-label">Room Code-u</span>
+          <div class="room-code-row">
+            <span id="lobby-room-code" class="room-code-value">——</span>
+            <button id="copy-code-btn" class="btn-icon" title="Code-a Copy Pannu da" aria-label="Copy room code">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <rect x="9" y="9" width="13" height="13" rx="2"></rect>
+                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+              </svg>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Connected Players Section -->
+      <div class="players-section">
+        <div class="section-header-row">
+          <span class="section-label">Aadaporavanga (Players)</span>
+          <span id="player-count" class="player-count-badge">0 / 8</span>
+        </div>
+        <ul id="players-list" class="players-list" aria-label="Lobby players"></ul>
+      </div>
+
+      <!-- Host Controls -->
+      <div id="host-controls" class="host-controls hidden">
+        <div class="form-group">
+          <label for="grid-size-select">Board Size Enna Veppom?</label>
+          <select id="grid-size-select" class="select-input">
+            <option value="9x6">Standard 9 &times; 6 (Proper Aatam)</option>
+            <option value="6x9">Wide 6 &times; 9 (Neelam Aatam)</option>
+            <option value="9x9">Periya Board 9 &times; 9 (Full Blast Sambavam)</option>
+            <option value="6x6">Quick 6 &times; 6 (Speed-a mudinjidum)</option>
+          </select>
+        </div>
+        <button id="start-game-btn" class="btn btn-primary full-width" disabled>
+          Aatatha Aarambi da! (Start)
+        </button>
+      </div>
+
+      <!-- Lobby Footer -->
+      <div class="lobby-actions-footer">
+        <p id="lobby-status" class="lobby-status">Host payya start pandra varaikkum amaidhiyaa iru da...</p>
+        <button id="leave-lobby-btn" class="btn btn-secondary btn-sm full-width" style="margin-top:12px;">
+          Lobby-la irundhu Veliye Po (Leave)
+        </button>
+      </div>
+
+    </div>
+  </div>
+</div>
