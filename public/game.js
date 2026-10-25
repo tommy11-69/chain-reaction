@@ -420,6 +420,32 @@ function playRoastAccent() {
   });
 }
 
+/** Crisp synthetic pop chime for quick chat & emoji blasts */
+function playChatPop() {
+  if (!audioEnabled) return;
+  const ctx = getAudioContext();
+  if (!ctx) return;
+  unlockAudioContext((activeCtx) => {
+    if (!activeCtx) return;
+    const now = activeCtx.currentTime;
+    const osc = activeCtx.createOscillator();
+    const gain = activeCtx.createGain();
+
+    osc.type = 'sine';
+    osc.frequency.setValueAtTime(520, now);
+    osc.frequency.exponentialRampToValueAtTime(1040, now + 0.08);
+
+    gain.gain.setValueAtTime(0.28, now);
+    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.08);
+
+    osc.connect(gain);
+    gain.connect(activeCtx.destination);
+
+    osc.start(now);
+    osc.stop(now + 0.085);
+  });
+}
+
 function initAudioEngine() {
   // Prime & unlock context on ANY user touch or click
   const unlock = () => {
@@ -592,6 +618,7 @@ function initSocket() {
   socket.on('player_disconnected',  onPlayerDisconnected);
   socket.on('rematch_vote',         onRematchVote);
   socket.on('left_room',            onLeftRoom);
+  socket.on('room_chat',            onRoomChat);
   socket.on('error',                data => {
     const errorMap = {
       'Room is full (max 8 players)': 'Room full aayiduchu da, 8 peru thaan aada mudiyum!',
@@ -733,6 +760,9 @@ function initUI() {
       syncFxCanvas();
     }
   });
+
+  // Quick Chat & Player Roast Tray
+  initChatTrayUI();
 }
 
 // ─── Session Management ──────────────────────────────────────────────────────
@@ -1373,6 +1403,8 @@ function renderPlayerList(state) {
       (i === currentPlayerIndex ? ' active-player' : '') +
       (!p.alive                 ? ' eliminated'    : '') +
       (isDisconnected           ? ' player-offline' : '');
+    div.dataset.playerId = p.id;
+    div.dataset.playerName = p.name;
 
     div.innerHTML = `
       <span class="player-dot" style="background:${esc(p.color)};color:${esc(p.color)}"></span>
@@ -1478,8 +1510,9 @@ function computeCellSize(rows, cols) {
   const { width, height } = wrapper.getBoundingClientRect();
   const gap    = 2;
   const padPx  = (width < 480) ? 8 : 16;
+  const bottomOffset = (width < 768) ? 58 : 46; // Dedicated clearance for Chat FAB tray
   const avW    = width  - padPx - gap * (cols - 1);
-  const avH    = height - padPx - gap * (rows - 1);
+  const avH    = height - padPx - bottomOffset - gap * (rows - 1);
   const byW    = Math.floor(avW / cols);
   const byH    = Math.floor(avH / rows);
   return Math.max(26, Math.min(byW, byH, 68));
@@ -1552,4 +1585,167 @@ function esc(str) {
 
 function flatGrid(grid) {
   return grid.flatMap(row => row.map(c => ({ orbs: c.orbs, owner: c.owner })));
+}
+
+// ─── Quick Chat & Player Roast System ──────────────────────────────────────────
+let chatThrottleUntil = 0;
+
+function initChatTrayUI() {
+  const roastFab = $('btn-arena-roast-fab');
+  if (roastFab) roastFab.addEventListener('click', toggleChatTray);
+
+  const closeTrayBtn = $('btn-close-chat-tray');
+  if (closeTrayBtn) closeTrayBtn.addEventListener('click', closeChatTray);
+
+  const trayBackdrop = $('chat-tray-backdrop');
+  if (trayBackdrop) trayBackdrop.addEventListener('click', closeChatTray);
+
+  // Event Delegation for Emojis & Roast Pills
+  const tray = $('arena-chat-tray');
+  if (tray) {
+    tray.addEventListener('click', e => {
+      const emojiBtn = e.target.closest('.chat-emoji-btn');
+      if (emojiBtn) {
+        const emoji = emojiBtn.dataset.emoji;
+        if (emoji) sendPlayerChat('', emoji);
+        return;
+      }
+      const roastPill = e.target.closest('.chat-roast-pill');
+      if (roastPill) {
+        const text = roastPill.dataset.text;
+        if (text) sendPlayerChat(text, null);
+        return;
+      }
+    });
+  }
+
+  // Custom Message Send
+  const chatSendBtn = $('btn-arena-chat-send');
+  const chatInput = $('arena-chat-input');
+  if (chatSendBtn && chatInput) {
+    chatSendBtn.addEventListener('click', () => {
+      const text = chatInput.value.trim();
+      if (text) sendPlayerChat(text, null);
+    });
+    chatInput.addEventListener('keydown', e => {
+      if (e.key === 'Enter') {
+        const text = chatInput.value.trim();
+        if (text) sendPlayerChat(text, null);
+      } else if (e.key === 'Escape') {
+        closeChatTray();
+      }
+    });
+  }
+}
+
+function toggleChatTray() {
+  const tray = $('arena-chat-tray');
+  if (!tray) return;
+  const isOpening = tray.classList.contains('hidden');
+  if (isOpening) {
+    tray.classList.remove('hidden');
+    const input = $('arena-chat-input');
+    if (input) {
+      setTimeout(() => input.focus(), 80);
+    }
+  } else {
+    tray.classList.add('hidden');
+  }
+}
+
+function closeChatTray() {
+  const tray = $('arena-chat-tray');
+  if (tray) tray.classList.add('hidden');
+}
+
+function sendPlayerChat(text, emoji) {
+  const roomCode = myRoomCode ||
+    (currentState ? currentState.roomCode : null) ||
+    ($('game-room-code-display') ? $('game-room-code-display').textContent.trim() : null);
+
+  if (!socket || !roomCode) return;
+  const now = Date.now();
+  if (now < chatThrottleUntil) {
+    showToast('Avasara padadha da baadu! 1 sec wait pannu!', 'warning');
+    return;
+  }
+  chatThrottleUntil = now + 1000;
+
+  socket.emit('send_chat', {
+    roomCode: roomCode,
+    text: text || '',
+    emoji: emoji || null,
+  });
+
+  closeChatTray();
+  const input = $('arena-chat-input');
+  if (input) input.value = '';
+}
+
+function onRoomChat(data) {
+  if (!data) return;
+  playChatPop();
+
+  const container = $('arena-chat-bubbles');
+  if (!container) return;
+
+  // Locate player item in roster
+  const list = $('game-players-list');
+  let playerItem = null;
+  if (list) {
+    playerItem = list.querySelector(`.game-player-item[data-player-id="${CSS.escape(data.playerId)}"]`);
+    if (!playerItem) {
+      playerItem = Array.from(list.querySelectorAll('.game-player-item')).find(
+        el => el.dataset.playerName === data.playerName
+      );
+    }
+  }
+
+  // Build live speech bubble
+  const bubble = document.createElement('div');
+  bubble.className = 'roster-speech-bubble';
+  if (data.playerColor) {
+    bubble.style.setProperty('--sender-color', data.playerColor);
+  }
+
+  let bubbleContent = '';
+  if (data.emoji) {
+    bubbleContent += `<span class="bubble-emoji">${esc(data.emoji)}</span>`;
+  }
+  if (data.text) {
+    bubbleContent += `<span class="bubble-text">${esc(data.text)}</span>`;
+  }
+  bubble.innerHTML = bubbleContent;
+
+  if (playerItem) {
+    const pRect = playerItem.getBoundingClientRect();
+    const cRect = container.getBoundingClientRect();
+    if (window.innerWidth >= 768) {
+      // Desktop: place right next to the player chip in the vertical sidebar
+      const left = pRect.right - cRect.left + 10;
+      const top = pRect.top - cRect.top + (pRect.height / 2);
+      bubble.style.left = `${left}px`;
+      bubble.style.top = `${top}px`;
+      bubble.style.transform = 'translateY(-50%)';
+      bubble.classList.add('desktop-bubble');
+    } else {
+      // Mobile: place right below the player chip in the horizontal top bar
+      const left = Math.max(75, Math.min(window.innerWidth - 75, pRect.left - cRect.left + (pRect.width / 2)));
+      const top = pRect.bottom - cRect.top + 6;
+      bubble.style.left = `${left}px`;
+      bubble.style.top = `${top}px`;
+      bubble.style.transform = 'translateX(-50%)';
+    }
+  } else {
+    bubble.classList.add('fallback-bubble');
+    bubble.insertAdjacentHTML('afterbegin', `<strong class="bubble-author" style="color:${esc(data.playerColor || '#2DFE54')}">${esc(data.playerName)}:</strong> `);
+  }
+
+  container.appendChild(bubble);
+
+  // Fade out and auto-remove after 3.2s
+  setTimeout(() => {
+    bubble.classList.add('fading-out');
+    setTimeout(() => bubble.remove(), 320);
+  }, 3200);
 }

@@ -63,6 +63,18 @@
         </div>
       </main>
 
+      <!-- Floating Live Player Chat Bubbles -->
+      <div id="arena-chat-bubbles" class="arena-chat-bubbles-container" aria-live="polite"></div>
+
+      <!-- Dedicated Bottom Clearance Bar & FAB -->
+      <div class="arena-bottom-tray">
+        <button id="btn-arena-roast-fab" class="arena-roast-fab" title="Roast / Quick Chat Podu!" aria-label="Open Quick Chat and Roasts">
+          <span class="fab-pulse-ring"></span>
+          <span class="fab-icon">💬</span>
+          <span class="fab-label">ROAST</span>
+        </button>
+      </div>
+
     </div>
 
     <!-- Floating Commentary / Gaali Roast Banner -->
@@ -73,5 +85,51 @@
       </div>
       <p class="commentary-text" id="commentary-text"></p>
     </div>
+
+    <!-- Quick Chat & Roast Drawer (Bottom Popover) -->
+    <div id="arena-chat-tray" class="arena-chat-tray hidden" role="dialog" aria-modal="true" aria-label="Quick Roast Chat">
+      <div class="tray-backdrop" id="chat-tray-backdrop"></div>
+      <div class="tray-sheet">
+        <div class="tray-header">
+          <div class="tray-title-group">
+            <span class="tray-badge">🔥 PLAYER ROAST &amp; TAUNT</span>
+            <span class="tray-sub">Blast and tease other players!</span>
+          </div>
+          <button id="btn-close-chat-tray" class="tray-close-btn" aria-label="Close Chat Tray">✕</button>
+        </div>
+
+        <!-- Single-Tap Emoji Blast Bar -->
+        <div class="tray-emoji-row">
+          <button class="chat-emoji-btn" data-emoji="🔥" title="Fire">🔥</button>
+          <button class="chat-emoji-btn" data-emoji="💀" title="Gaali">💀</button>
+          <button class="chat-emoji-btn" data-emoji="🤡" title="Joker">🤡</button>
+          <button class="chat-emoji-btn" data-emoji="💥" title="Blast">💥</button>
+          <button class="chat-emoji-btn" data-emoji="💩" title="Mokka">💩</button>
+          <button class="chat-emoji-btn" data-emoji="👑" title="King">👑</button>
+          <button class="chat-emoji-btn" data-emoji="😭" title="Katharal">😭</button>
+          <button class="chat-emoji-btn" data-emoji="🍿" title="Popcorn">🍿</button>
+        </div>
+
+        <!-- Quick Tanglish Roast Pills -->
+        <div class="tray-roast-list">
+          <button class="chat-roast-pill" data-text="Dei baadu, enna move da idhu?!">Dei baadu, enna move da idhu?! 😂</button>
+          <button class="chat-roast-pill" data-text="Avasara koodhi, kavanama podu!">Avasara koodhi, kavanama podu! ⚠️</button>
+          <button class="chat-roast-pill" data-text="Kevalamaana move da saami!">Kevalamaana move da saami! 🤡</button>
+          <button class="chat-roast-pill" data-text="Enna thala, bayandhutiya?!">Enna thala, bayandhutiya?! 🐔</button>
+          <button class="chat-roast-pill" data-text="Wipeout loading... Ready-a iru!">Wipeout loading... Ready-a iru! 💀</button>
+          <button class="chat-roast-pill" data-text="Motha board-um ennodadhu da!">Motha board-um ennodadhu da! 🔥</button>
+          <button class="chat-roast-pill" data-text="Bomb blast sambavam varudhu!">Bomb blast sambavam varudhu! 💥</button>
+          <button class="chat-roast-pill" data-text="Corner dhaan raja! Kitta varadha!">Corner dhaan raja! Kitta varadha! 👑</button>
+        </div>
+
+        <!-- Custom Message Input -->
+        <div class="tray-input-row">
+          <input type="text" id="arena-chat-input" class="tray-chat-input" maxlength="45"
+                 placeholder="Un custom roasta type pannu da..." autocomplete="off" spellcheck="false" />
+          <button id="btn-arena-chat-send" class="btn btn-primary btn-sm tray-send-btn">Send 🚀</button>
+        </div>
+      </div>
+    </div>
+
   </div>
 </div>

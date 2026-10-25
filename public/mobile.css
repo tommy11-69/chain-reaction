@@ -579,6 +579,77 @@
     max-width: 100%;
     width: 100%;
   }
+
+  /* ── Arena Bottom Clearance & Quick Chat FAB ────────────────────── */
+  .arena-bottom-tray {
+    position: absolute !important;
+    bottom: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    height: 48px !important;
+    padding: 0 0.75rem max(0.45rem, env(safe-area-inset-bottom)) 0.75rem !important;
+    z-index: 60 !important;
+  }
+
+  .arena-roast-fab {
+    padding: 0.34rem 0.8rem !important;
+    font-size: 0.68rem !important;
+    gap: 0.35rem !important;
+  }
+
+  .arena-roast-fab .fab-icon {
+    font-size: 0.88rem !important;
+  }
+
+  /* Mobile Speech Bubble (Attached to top horizontal player roster) */
+  .roster-speech-bubble {
+    max-width: 220px !important;
+    white-space: normal !important;
+    text-align: center !important;
+    font-size: 0.74rem !important;
+    padding: 0.3rem 0.55rem !important;
+    animation: bubblePopInMobile 0.24s cubic-bezier(0.34, 1.56, 0.64, 1) forwards !important;
+  }
+
+  .roster-speech-bubble::before {
+    left: 50% !important;
+    top: -6px !important;
+    transform: translateX(-50%) !important;
+    border-left: 5px solid transparent !important;
+    border-right: 5px solid transparent !important;
+    border-bottom: 6px solid var(--sender-color, var(--accent-lime)) !important;
+    border-top: none !important;
+    border-right-color: transparent !important;
+  }
+
+  .roster-speech-bubble.fading-out {
+    opacity: 0 !important;
+    transform: translateX(-50%) translateY(4px) scale(0.9) !important;
+  }
+
+  @keyframes bubblePopInMobile {
+    from { opacity: 0; transform: translateX(-50%) scale(0.6); }
+    to   { opacity: 1; transform: translateX(-50%) scale(1); }
+  }
+
+  .tray-sheet {
+    max-height: 86vh !important;
+    padding: 1rem 0.9rem max(1rem, env(safe-area-inset-bottom)) 0.9rem !important;
+  }
+
+  .tray-emoji-row {
+    gap: 0.25rem !important;
+  }
+
+  .chat-emoji-btn {
+    font-size: 1.15rem !important;
+    padding: 0.4rem 0.05rem !important;
+  }
+
+  .chat-roast-pill {
+    font-size: 0.72rem !important;
+    padding: 0.32rem 0.65rem !important;
+  }
 }
 
 /* ── Mobile Landscape Handling ───────────────────────────────────── */

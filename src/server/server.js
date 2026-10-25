@@ -14,6 +14,7 @@ const server = http.createServer(app);
 const io     = new Server(server, { cors: { origin: '*' } });
 const rooms  = new RoomManager();
 const commentaryEngine = new CommentaryEngine();
+const lastChatTimes = new Map();
 
 // ─── Static files ──────────────────────────────────────────────────────────
 app.use(express.static(path.join(__dirname, '../../public')));
@@ -173,9 +174,38 @@ io.on('connection', socket => {
     }
   });
 
+  // ── Player Quick Chat & Roasts ───────────────────────────────────────────
+  socket.on('send_chat', ({ roomCode, text, emoji } = {}) => {
+    const room = getRoom(socket, roomCode);
+    if (!room) return;
+
+    const now = Date.now();
+    const lastTime = lastChatTimes.get(socket.id) || 0;
+    if (now - lastTime < 1000) return; // 1 second throttle
+    lastChatTimes.set(socket.id, now);
+
+    const player = room.players.find(p => p.id === socket.id);
+    if (!player) return;
+
+    const sanitizedText = (typeof text === 'string') ? text.trim().slice(0, 60) : '';
+    const sanitizedEmoji = (typeof emoji === 'string') ? emoji.trim().slice(0, 10) : null;
+
+    if (!sanitizedText && !sanitizedEmoji) return;
+
+    io.to(room.code).emit('room_chat', {
+      playerId: socket.id,
+      playerName: player.name,
+      playerColor: player.color,
+      text: sanitizedText,
+      emoji: sanitizedEmoji,
+      timestamp: now,
+    });
+  });
+
   // ── Disconnect ───────────────────────────────────────────────────────────
   socket.on('disconnect', () => {
     console.log(`[-] ${socket.id}`);
+    lastChatTimes.delete(socket.id);
     const room = rooms.disconnect(socket.id, io);
     if (!room) return;
 

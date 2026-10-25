@@ -2246,3 +2246,361 @@ body.reduce-motion .cell.critical::before {
   margin-top: 2px;
 }
 
+/* ═════════════════════════════════════════════════════════════════
+   ARENA QUICK CHAT, PLAYER ROASTS & BOTTOM CLEARANCE TRAY
+   ═════════════════════════════════════════════════════════════════ */
+
+/* Dedicated Bottom Clearance Bar & FAB */
+.arena-bottom-tray {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 52px;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  padding: 0 1rem 0.65rem 1rem;
+  pointer-events: none;
+  z-index: 60;
+  box-sizing: border-box;
+}
+
+.arena-roast-fab {
+  pointer-events: auto;
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0.42rem 0.95rem;
+  background: rgba(12, 20, 12, 0.94);
+  border: 1.5px solid var(--accent-lime);
+  border-radius: 999px;
+  color: #fff;
+  cursor: pointer;
+  box-shadow: 0 0 16px rgba(45, 254, 84, 0.35), 0 4px 18px rgba(0, 0, 0, 0.85);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  transition: transform 0.16s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.16s ease, background-color 0.16s ease;
+  touch-action: manipulation;
+  user-select: none;
+}
+
+.arena-roast-fab:hover {
+  transform: scale(1.06);
+  background: rgba(18, 28, 18, 0.98);
+  box-shadow: 0 0 24px rgba(45, 254, 84, 0.55), 0 6px 20px rgba(0, 0, 0, 0.9);
+}
+
+.arena-roast-fab:active {
+  transform: scale(0.96);
+}
+
+.arena-roast-fab .fab-icon {
+  font-size: 1rem;
+  line-height: 1;
+}
+
+.arena-roast-fab .fab-label {
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  color: var(--accent-lime);
+}
+
+.arena-roast-fab .fab-pulse-ring {
+  position: absolute;
+  inset: -3px;
+  border-radius: 999px;
+  border: 1px solid var(--accent-lime);
+  pointer-events: none;
+  animation: fabRingPulse 2.5s infinite ease-out;
+}
+
+@keyframes fabRingPulse {
+  0%   { transform: scale(0.98); opacity: 0.8; }
+  60%  { transform: scale(1.22); opacity: 0; }
+  100% { transform: scale(1.22); opacity: 0; }
+}
+
+/* Quick Chat & Roast Drawer Tray */
+.arena-chat-tray {
+  position: fixed;
+  inset: 0;
+  z-index: 1200;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+}
+
+.arena-chat-tray.hidden {
+  display: none !important;
+}
+
+.tray-backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.65);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  animation: trayBackdropFade 0.22s ease forwards;
+}
+
+.tray-sheet {
+  position: relative;
+  width: 100%;
+  max-width: 520px;
+  max-height: 82vh;
+  background: rgba(10, 16, 10, 0.97);
+  border: 1.5px solid rgba(45, 254, 84, 0.35);
+  border-bottom: none;
+  border-radius: 20px 20px 0 0;
+  padding: 1.15rem 1.1rem max(1rem, env(safe-area-inset-bottom)) 1.1rem;
+  box-shadow: 0 -12px 40px rgba(0, 0, 0, 0.95), 0 0 35px rgba(45, 254, 84, 0.15);
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+  animation: traySheetSlideUp 0.28s cubic-bezier(0.34, 1.4, 0.64, 1) forwards;
+  overflow-y: auto;
+  box-sizing: border-box;
+}
+
+@keyframes trayBackdropFade {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+@keyframes traySheetSlideUp {
+  from { transform: translateY(100%); }
+  to   { transform: translateY(0); }
+}
+
+.tray-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.tray-title-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+
+.tray-badge {
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  color: var(--accent-lime);
+}
+
+.tray-sub {
+  font-size: 0.72rem;
+  color: var(--txt-muted);
+}
+
+.tray-close-btn {
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid var(--border);
+  color: var(--txt-secondary);
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-size: 0.85rem;
+  transition: all 0.15s ease;
+}
+
+.tray-close-btn:hover {
+  background: rgba(255, 77, 77, 0.25);
+  border-color: #ff4d4d;
+  color: #fff;
+  transform: scale(1.08);
+}
+
+/* Single-Tap Emoji Blast Row */
+.tray-emoji-row {
+  display: grid;
+  grid-template-columns: repeat(8, 1fr);
+  gap: 0.4rem;
+}
+
+.chat-emoji-btn {
+  background: rgba(18, 26, 18, 0.9);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xs);
+  padding: 0.45rem 0.1rem;
+  font-size: 1.35rem;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: transform 0.12s cubic-bezier(0.34, 1.56, 0.64, 1), background 0.12s ease, border-color 0.12s ease;
+  touch-action: manipulation;
+}
+
+.chat-emoji-btn:hover,
+.chat-emoji-btn:active {
+  transform: scale(1.24);
+  background: rgba(45, 254, 84, 0.22);
+  border-color: var(--accent-lime);
+  box-shadow: 0 0 12px rgba(45, 254, 84, 0.35);
+}
+
+/* Quick Roast Pills List */
+.tray-roast-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+  max-height: 190px;
+  overflow-y: auto;
+  padding-right: 0.25rem;
+  scrollbar-width: thin;
+}
+
+.chat-roast-pill {
+  background: rgba(16, 24, 16, 0.92);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 999px;
+  padding: 0.38rem 0.8rem;
+  font-size: 0.78rem;
+  font-weight: 500;
+  color: var(--txt-primary);
+  cursor: pointer;
+  text-align: left;
+  transition: all 0.15s ease;
+  touch-action: manipulation;
+  line-height: 1.25;
+}
+
+.chat-roast-pill:hover,
+.chat-roast-pill:active {
+  background: rgba(45, 254, 84, 0.18);
+  border-color: var(--accent-lime);
+  color: #fff;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5), 0 0 10px rgba(45, 254, 84, 0.2);
+}
+
+/* Custom Message Input Row */
+.tray-input-row {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+  margin-top: 0.2rem;
+}
+
+.tray-chat-input {
+  flex: 1;
+  min-height: 42px;
+  background: rgba(6, 10, 6, 0.92);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xs);
+  padding: 0.5rem 0.85rem;
+  font-size: 0.88rem;
+  color: #fff;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.tray-chat-input:focus {
+  border-color: var(--accent-lime);
+  outline: none;
+  box-shadow: 0 0 12px rgba(45, 254, 84, 0.3);
+}
+
+.tray-send-btn {
+  flex-shrink: 0;
+  min-height: 42px;
+  padding: 0.5rem 1rem;
+  font-size: 0.85rem;
+  touch-action: manipulation;
+}
+
+/* Live Speech Bubbles */
+.arena-chat-bubbles-container {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 100;
+  overflow: hidden;
+}
+
+.roster-speech-bubble {
+  position: absolute;
+  background: rgba(10, 16, 10, 0.96);
+  border: 1.5px solid var(--sender-color, var(--accent-lime));
+  border-radius: 12px;
+  padding: 0.38rem 0.75rem;
+  color: #fff;
+  font-size: 0.8rem;
+  font-weight: 600;
+  white-space: nowrap;
+  pointer-events: none;
+  z-index: 120;
+  box-shadow: 0 6px 22px rgba(0, 0, 0, 0.9), 0 0 14px color-mix(in srgb, var(--sender-color, var(--accent-lime)) 35%, transparent);
+  animation: bubblePopIn 0.24s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+/* Default Mobile: pointer pointing UP toward the player chip */
+.roster-speech-bubble::before {
+  content: '';
+  position: absolute;
+  left: 50%;
+  top: -6px;
+  transform: translateX(-50%);
+  border-left: 5px solid transparent;
+  border-right: 5px solid transparent;
+  border-bottom: 6px solid var(--sender-color, var(--accent-lime));
+}
+
+/* Desktop: pointer pointing LEFT toward the player chip */
+.roster-speech-bubble.desktop-bubble::before {
+  left: -6px;
+  top: 50%;
+  transform: translateY(-50%);
+  border-top: 5px solid transparent;
+  border-bottom: 5px solid transparent;
+  border-right: 6px solid var(--sender-color, var(--accent-lime));
+  border-left: none;
+  border-bottom-color: transparent;
+}
+
+.roster-speech-bubble .bubble-emoji {
+  font-size: 1.25rem;
+  line-height: 1;
+}
+
+.roster-speech-bubble.fading-out {
+  opacity: 0;
+  transform: scale(0.9);
+  transition: opacity 0.3s ease, transform 0.3s ease;
+}
+
+@keyframes bubblePopIn {
+  from { opacity: 0; transform: scale(0.6); }
+  to   { opacity: 1; transform: scale(1); }
+}
+
+/* Fallback floating bubble when player element is not mounted */
+.roster-speech-bubble.fallback-bubble {
+  position: relative;
+  left: auto;
+  top: auto;
+  transform: none;
+  animation: bubblePopIn 0.24s ease forwards;
+}
+
+.roster-speech-bubble.fallback-bubble::before {
+  display: none;
+}
+
+
