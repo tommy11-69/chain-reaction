@@ -994,7 +994,7 @@ function renderTurnIndicator(state) {
   const isMe = cur && cur.id === myPlayerId;
 
   dot.style.background = cur ? cur.color : '#F0FDF4';
-  text.textContent = isMe ? 'Un Turn Dha! Podu!' : (cur ? `${cur.name} Turn ! Thailee ennamo pandran...` : '—');
+  text.textContent = isMe ? 'Un Turn Dha! Podu!' : (cur ? `${cur.name}'s Turn ! Thailee ennamo pandran...` : '—');
   el.className = 'turn-indicator' + (isMe ? ' my-turn' : '');
 
   if (frame && cur) {
