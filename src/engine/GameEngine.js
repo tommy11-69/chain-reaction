@@ -121,31 +121,63 @@ class GameEngine {
 
   /**
    * Eliminate players who have 0 orbs on the board.
-   * Grace period: elimination only applies after every player has had
-   * at least one turn (hasPlayed flag), so nobody is wiped out before
-   * they even get a chance to play.
+   * Any player who has had at least one turn (hasPlayed === true)
+   * and now has 0 orbs is eliminated from the game.
    */
   _checkElimination() {
-    const allHavePlayed = this.players.every(p => p.hasPlayed);
-    if (!allHavePlayed) return;
     for (const p of this.players) {
-      if (p.alive && p.orbCount === 0) {
+      if (p.hasPlayed && p.alive && p.orbCount === 0) {
         p.alive = false;
       }
     }
   }
 
   /**
-   * Declare a winner when exactly one player is still alive,
-   * but only after the grace period has passed.
+   * Declare a winner when:
+   * 1. Only one player remains alive, OR
+   * 2. After at least 2 player moves, all orbs on the board belong to a single player
+   *    and all other players have 0 orbs (instant wipeout victory).
    */
   _checkVictory() {
-    const allHavePlayed = this.players.every(p => p.hasPlayed);
-    if (!allHavePlayed) return;
+    const playersWhoPlayed = this.players.filter(p => p.hasPlayed);
+    // Don't declare victory on move 1 before opponent has had their first turn
+    if (playersWhoPlayed.length < Math.min(2, this.players.length)) {
+      return;
+    }
+
     const alive = this.players.filter(p => p.alive);
+    const playersWithOrbs = this.players.filter(p => p.orbCount > 0);
+
+    // Condition 1: Exactly one alive player remains
     if (alive.length === 1) {
       this.status = 'finished';
       this.winner = alive[0];
+      return;
+    }
+
+    // Condition 2: Wipeout! All orbs on the board belong to only ONE player
+    // and all other players are wiped out to 0 orbs.
+    if (playersWithOrbs.length === 1 && playersWhoPlayed.length >= 2) {
+      const winner = playersWithOrbs[0];
+      // Mark all other players dead
+      for (const p of this.players) {
+        if (p.id !== winner.id) {
+          p.alive = false;
+          p.orbCount = 0;
+        }
+      }
+      this.status = 'finished';
+      this.winner = winner;
+      return;
+    }
+
+    // Condition 3: Safety tiebreaker if all players got marked dead somehow
+    if (alive.length === 0 && playersWithOrbs.length > 0) {
+      const winner = playersWithOrbs[0];
+      winner.alive = true;
+      this.status = 'finished';
+      this.winner = winner;
+      return;
     }
   }
 
@@ -160,6 +192,10 @@ class GameEngine {
       attempts++;
     } while (!this.players[this.currentPlayerIndex].alive && attempts <= this.players.length);
     this.turnNumber++;
+
+    if (!this.players[this.currentPlayerIndex].alive) {
+      this._checkVictory();
+    }
   }
 
   // ─── Public API ───────────────────────────────────────────────────────────
@@ -213,7 +249,13 @@ class GameEngine {
    */
   skipTurn() {
     if (this.status !== 'playing') return false;
-    this._advanceTurn();
+    const current = this.players[this.currentPlayerIndex];
+    if (current) current.hasPlayed = true;
+    this._checkElimination();
+    this._checkVictory();
+    if (this.status === 'playing') {
+      this._advanceTurn();
+    }
     return true;
   }
 

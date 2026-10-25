@@ -1,4 +1,4 @@
-﻿'use strict';
+'use strict';
 
 const { test, describe } = require('node:test');
 const assert = require('node:assert/strict');
@@ -272,6 +272,38 @@ describe('Victory Conditions', () => {
     assert.equal(e.players[0].alive, true);
     assert.equal(e.players[1].alive, true);
     assert.equal(e.status, 'playing');
+  });
+
+  test('wipeout: game finishes immediately when all opponent colors are wiped out and only one color stays', () => {
+    const e = make2P(3, 3);
+    // p1 places at corner (0,0)
+    e.placeOrb('p1', 0, 0);
+    // p2 places adjacent at (0,1)
+    e.placeOrb('p2', 0, 1);
+    // p1 places at (0,0) again -> explodes into (0,1), capturing p2's only orb
+    const result = e.placeOrb('p1', 0, 0);
+
+    assert.equal(result.success, true);
+    assert.equal(e.status, 'finished', 'game must finish when all other players are wiped out');
+    assert.equal(e.winner.id, 'p1', 'p1 must be declared winner');
+    assert.equal(e.players[1].alive, false, 'p2 must be eliminated');
+    assert.equal(e.players[1].orbCount, 0);
+  });
+
+  test('wipeout with a skipped 3rd player ends immediately without endless loop', () => {
+    const e = make3P(3, 3);
+    e.placeOrb('p1', 0, 0);
+    e.placeOrb('p2', 0, 1);
+    // p3 is skipped (e.g. disconnected)
+    e.skipTurn();
+
+    // p1 triggers cascade and captures all p2 orbs
+    e.placeOrb('p1', 0, 0);
+
+    assert.equal(e.status, 'finished', 'game must finish without looping');
+    assert.equal(e.winner.id, 'p1');
+    assert.equal(e.players[1].alive, false);
+    assert.equal(e.players[2].alive, false);
   });
 });
 

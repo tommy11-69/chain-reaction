@@ -146,11 +146,13 @@ function toggleAudio() {
   localStorage.setItem('cr_audio', audioEnabled ? 'true' : 'false');
   updateAudioUI();
   if (audioEnabled) {
-    resumeAudioContext();
-    playOrbPlace('#2DFE54');
-    showToast('Sound on panniyaachu da!', 'info');
+    unlockAudioContext((ctx) => {
+      playToggleChime(true);
+      showToast('Sound on panniyaachu! 🔊', 'info');
+    });
   } else {
-    showToast('Sound-a off pannitta da!', 'info');
+    playToggleChime(false);
+    showToast('Sound-a off pannitta da! 🔇', 'info');
   }
 }
 
@@ -161,82 +163,175 @@ function toggleMotion() {
   showToast(motionReduced ? 'FX konjam aakiyachu da' : 'FX vera level-la irukku da!', 'info');
 }
 
-// ─── Procedural Web Audio Synthesis ──────────────────────────────────────────
+// ─── Procedural Web Audio Synthesis (Mobile & Desktop Optimized) ─────────────
 let audioCtx = null;
 
 function getAudioContext() {
   if (!audioCtx && (window.AudioContext || window.webkitAudioContext)) {
     const AudioCtor = window.AudioContext || window.webkitAudioContext;
-    audioCtx = new AudioCtor();
+    try {
+      audioCtx = new AudioCtor({ latencyHint: 'interactive' });
+    } catch (_) {
+      audioCtx = new AudioCtor();
+    }
   }
   return audioCtx;
 }
 
-function resumeAudioContext() {
+/**
+ * Mobile Web Audio unlocker for iOS Safari & Android Chrome.
+ * Plays a 1-sample silent buffer synchronously to unlock hardware audio output.
+ */
+function unlockAudioContext(onReady) {
   const ctx = getAudioContext();
-  if (ctx && ctx.state === 'suspended') {
-    ctx.resume();
+  if (!ctx) {
+    if (onReady) onReady(null);
+    return;
+  }
+
+  // iOS WebKit hardware speaker unlock
+  try {
+    const buffer = ctx.createBuffer(1, 1, 22050);
+    const source = ctx.createBufferSource();
+    source.buffer = buffer;
+    source.connect(ctx.destination);
+    source.start(0);
+  } catch (_) {}
+
+  if (ctx.state === 'suspended' || ctx.state === 'interrupted') {
+    ctx.resume().then(() => {
+      if (onReady) onReady(ctx);
+    }).catch(() => {
+      if (onReady) onReady(ctx);
+    });
+  } else {
+    if (onReady) onReady(ctx);
   }
 }
 
-/** Soft rounded organic droplet pop */
+function resumeAudioContext() {
+  unlockAudioContext();
+}
+
+/** Instant clear feedback chime when user toggles sound ON/OFF */
+function playToggleChime(isOn) {
+  const ctx = getAudioContext();
+  if (!ctx) return;
+  if (ctx.state !== 'running') {
+    ctx.resume();
+  }
+
+  const now = ctx.currentTime;
+  if (isOn) {
+    // Bright ascending double chime (587Hz -> 880Hz) — perfectly tuned for phone speakers
+    const osc1 = ctx.createOscillator();
+    const osc2 = ctx.createOscillator();
+    const gain1 = ctx.createGain();
+    const gain2 = ctx.createGain();
+
+    osc1.type = 'triangle';
+    osc1.frequency.setValueAtTime(587.33, now); // D5
+    gain1.gain.setValueAtTime(0.38, now);
+    gain1.gain.exponentialRampToValueAtTime(0.001, now + 0.08);
+
+    osc2.type = 'sine';
+    osc2.frequency.setValueAtTime(880.00, now + 0.06); // A5
+    gain2.gain.setValueAtTime(0.001, now);
+    gain2.gain.setValueAtTime(0.42, now + 0.06);
+    gain2.gain.exponentialRampToValueAtTime(0.001, now + 0.18);
+
+    osc1.connect(gain1);
+    gain1.connect(ctx.destination);
+    osc2.connect(gain2);
+    gain2.connect(ctx.destination);
+
+    osc1.start(now);
+    osc1.stop(now + 0.085);
+    osc2.start(now + 0.06);
+    osc2.stop(now + 0.19);
+  } else {
+    // Soft descending tone (400Hz -> 240Hz)
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.type = 'sine';
+    osc.frequency.setValueAtTime(400, now);
+    osc.frequency.exponentialRampToValueAtTime(220, now + 0.09);
+    gain.gain.setValueAtTime(0.24, now);
+    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.09);
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+    osc.start(now);
+    osc.stop(now + 0.095);
+  }
+}
+
+/** Crisp, tactile organic droplet pop (audible on phone speakers & headphones) */
 function playOrbPlace(colorHex) {
   if (!audioEnabled) return;
   const ctx = getAudioContext();
   if (!ctx) return;
-  resumeAudioContext();
+  unlockAudioContext((activeCtx) => {
+    if (!activeCtx) return;
+    const now = activeCtx.currentTime;
 
-  const now = ctx.currentTime;
-  const osc = ctx.createOscillator();
-  const gain = ctx.createGain();
-  const filter = ctx.createBiquadFilter();
+    // Dual oscillator: rich harmonic pop (triangle overtone + warm sine)
+    const oscMain = activeCtx.createOscillator();
+    const oscHarm = activeCtx.createOscillator();
+    const gain = activeCtx.createGain();
 
-  osc.type = 'sine';
-  osc.frequency.setValueAtTime(320, now);
-  osc.frequency.exponentialRampToValueAtTime(140, now + 0.08);
+    oscMain.type = 'sine';
+    oscMain.frequency.setValueAtTime(720, now);
+    oscMain.frequency.exponentialRampToValueAtTime(280, now + 0.11);
 
-  filter.type = 'lowpass';
-  filter.frequency.setValueAtTime(800, now);
+    oscHarm.type = 'triangle';
+    oscHarm.frequency.setValueAtTime(1080, now);
+    oscHarm.frequency.exponentialRampToValueAtTime(420, now + 0.09);
 
-  gain.gain.setValueAtTime(0.2, now);
-  gain.gain.exponentialRampToValueAtTime(0.001, now + 0.08);
+    gain.gain.setValueAtTime(0.42, now);
+    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.11);
 
-  osc.connect(filter);
-  filter.connect(gain);
-  gain.connect(ctx.destination);
+    oscMain.connect(gain);
+    oscHarm.connect(gain);
+    gain.connect(activeCtx.destination);
 
-  osc.start(now);
-  osc.stop(now + 0.085);
+    oscMain.start(now);
+    oscHarm.start(now);
+    oscMain.stop(now + 0.115);
+    oscHarm.stop(now + 0.095);
+  });
 }
 
-/** Deeper subtle sub thud on cell burst */
+/** Punchy explosive thud on cell explosion / cascade burst */
 function playCellBurst() {
   if (!audioEnabled) return;
   const ctx = getAudioContext();
   if (!ctx) return;
-  resumeAudioContext();
+  unlockAudioContext((activeCtx) => {
+    if (!activeCtx) return;
+    const now = activeCtx.currentTime;
 
-  const now = ctx.currentTime;
-  const osc = ctx.createOscillator();
-  const gain = ctx.createGain();
-  const filter = ctx.createBiquadFilter();
+    const osc = activeCtx.createOscillator();
+    const gain = activeCtx.createGain();
+    const filter = activeCtx.createBiquadFilter();
 
-  osc.type = 'triangle';
-  osc.frequency.setValueAtTime(95, now);
-  osc.frequency.exponentialRampToValueAtTime(35, now + 0.14);
+    osc.type = 'triangle';
+    osc.frequency.setValueAtTime(380, now);
+    osc.frequency.exponentialRampToValueAtTime(110, now + 0.16);
 
-  filter.type = 'lowpass';
-  filter.frequency.setValueAtTime(350, now);
+    filter.type = 'lowpass';
+    filter.frequency.setValueAtTime(900, now);
+    filter.frequency.exponentialRampToValueAtTime(350, now + 0.16);
 
-  gain.gain.setValueAtTime(0.35, now);
-  gain.gain.exponentialRampToValueAtTime(0.001, now + 0.14);
+    gain.gain.setValueAtTime(0.48, now);
+    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.16);
 
-  osc.connect(filter);
-  filter.connect(gain);
-  gain.connect(ctx.destination);
+    osc.connect(filter);
+    filter.connect(gain);
+    gain.connect(activeCtx.destination);
 
-  osc.start(now);
-  osc.stop(now + 0.145);
+    osc.start(now);
+    osc.stop(now + 0.165);
+  });
 }
 
 /** Harmonic resonant pulse during cascade wave */
@@ -244,87 +339,89 @@ function playCascadeWave(waveIndex) {
   if (!audioEnabled) return;
   const ctx = getAudioContext();
   if (!ctx) return;
-  resumeAudioContext();
+  unlockAudioContext((activeCtx) => {
+    if (!activeCtx) return;
+    const now = activeCtx.currentTime;
+    const osc = activeCtx.createOscillator();
+    const gain = activeCtx.createGain();
 
-  const now = ctx.currentTime;
-  const osc = ctx.createOscillator();
-  const gain = ctx.createGain();
+    // Vibrant melodic scale that rings clearly on mobile speakers
+    const scale = [330, 392, 440, 523.25, 587.33, 659.25, 784, 880];
+    const freq = scale[waveIndex % scale.length];
 
-  // Subtle melodic ascent
-  const scale = [220, 247.5, 277.2, 329.6, 370, 440, 495, 554.4];
-  const freq = scale[waveIndex % scale.length];
+    osc.type = 'triangle';
+    osc.frequency.setValueAtTime(freq, now);
+    osc.frequency.exponentialRampToValueAtTime(freq * 0.98, now + 0.14);
 
-  osc.type = 'sine';
-  osc.frequency.setValueAtTime(freq, now);
-  osc.frequency.exponentialRampToValueAtTime(freq * 0.98, now + 0.12);
+    gain.gain.setValueAtTime(0.32, now);
+    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.14);
 
-  gain.gain.setValueAtTime(0.18, now);
-  gain.gain.exponentialRampToValueAtTime(0.001, now + 0.12);
+    osc.connect(gain);
+    gain.connect(activeCtx.destination);
 
-  osc.connect(gain);
-  gain.connect(ctx.destination);
-
-  osc.start(now);
-  osc.stop(now + 0.125);
+    osc.start(now);
+    osc.stop(now + 0.145);
+  });
 }
 
-/** Victory low atmospheric resonance */
+/** Triumphant atmospheric victory celebration chords */
 function playVictory() {
   if (!audioEnabled) return;
   const ctx = getAudioContext();
   if (!ctx) return;
-  resumeAudioContext();
-
-  const chords = [110, 164.8, 220, 277.2];
-  const now = ctx.currentTime;
-  chords.forEach(f => {
-    const osc = ctx.createOscillator();
-    const gain = ctx.createGain();
-    osc.type = 'sine';
-    osc.frequency.setValueAtTime(f, now);
-    gain.gain.setValueAtTime(0.08, now);
-    gain.gain.exponentialRampToValueAtTime(0.0001, now + 1.8);
-    osc.connect(gain);
-    gain.connect(ctx.destination);
-    osc.start(now);
-    osc.stop(now + 1.85);
+  unlockAudioContext((activeCtx) => {
+    if (!activeCtx) return;
+    const chords = [261.63, 329.63, 392.00, 523.25, 659.25];
+    const now = activeCtx.currentTime;
+    chords.forEach((f, idx) => {
+      const osc = activeCtx.createOscillator();
+      const gain = activeCtx.createGain();
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(f, now + idx * 0.08);
+      gain.gain.setValueAtTime(0.28, now + idx * 0.08);
+      gain.gain.exponentialRampToValueAtTime(0.0001, now + idx * 0.08 + 1.6);
+      osc.connect(gain);
+      gain.connect(activeCtx.destination);
+      osc.start(now + idx * 0.08);
+      osc.stop(now + idx * 0.08 + 1.65);
+    });
   });
 }
 
-/** Punchy comedic audio accent for major roasts */
+/** Punchy comedic audio accent for major Tamil gaali roasts */
 function playRoastAccent() {
   if (!audioEnabled) return;
   const ctx = getAudioContext();
   if (!ctx) return;
-  resumeAudioContext();
+  unlockAudioContext((activeCtx) => {
+    if (!activeCtx) return;
+    const now = activeCtx.currentTime;
+    const osc = activeCtx.createOscillator();
+    const gain = activeCtx.createGain();
 
-  const now = ctx.currentTime;
-  const osc = ctx.createOscillator();
-  const gain = ctx.createGain();
+    osc.type = 'sawtooth';
+    osc.frequency.setValueAtTime(460, now);
+    osc.frequency.exponentialRampToValueAtTime(220, now + 0.15);
 
-  osc.type = 'sawtooth';
-  osc.frequency.setValueAtTime(170, now);
-  osc.frequency.exponentialRampToValueAtTime(70, now + 0.12);
+    gain.gain.setValueAtTime(0.36, now);
+    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.15);
 
-  gain.gain.setValueAtTime(0.12, now);
-  gain.gain.exponentialRampToValueAtTime(0.001, now + 0.12);
+    osc.connect(gain);
+    gain.connect(activeCtx.destination);
 
-  osc.connect(gain);
-  gain.connect(ctx.destination);
-
-  osc.start(now);
-  osc.stop(now + 0.125);
+    osc.start(now);
+    osc.stop(now + 0.155);
+  });
 }
 
 function initAudioEngine() {
-  // Prime context on first user interaction
+  // Prime & unlock context on ANY user touch or click
   const unlock = () => {
-    resumeAudioContext();
-    window.removeEventListener('click', unlock);
-    window.removeEventListener('keydown', unlock);
+    unlockAudioContext();
   };
-  window.addEventListener('click', unlock);
-  window.addEventListener('keydown', unlock);
+  ['touchstart', 'touchend', 'pointerdown', 'click', 'keydown'].forEach(evt => {
+    window.addEventListener(evt, unlock, { passive: true });
+  });
 }
 
 // ─── Hypnotic Ambient Weed Vapor & Trichome Canvas ────────────────────────────
@@ -469,9 +566,12 @@ function initSocket() {
 // ─── UI Bindings ─────────────────────────────────────────────────────────────
 function initUI() {
   // Utility buttons
-  $('audio-toggle-btn').addEventListener('click', toggleAudio);
+  const soundBtns = [$('audio-toggle-btn'), $('ingame-sound-btn')].filter(Boolean);
+  soundBtns.forEach(b => {
+    b.addEventListener('click', toggleAudio);
+    b.addEventListener('pointerdown', () => unlockAudioContext());
+  });
   $('motion-toggle-btn').addEventListener('click', toggleMotion);
-  $('ingame-sound-btn').addEventListener('click', toggleAudio);
   $('slang-toggle-btn').addEventListener('click', toggleSlang);
   $('freq-toggle-btn').addEventListener('click', cycleFrequency);
   $('ingame-slang-btn').addEventListener('click', toggleSlang);
@@ -855,7 +955,8 @@ function executeCascadeSequence(data, waves) {
     });
 
     // 2. Animate psychedelic plasma trails, shockwaves & sparks
-    const trailDuration = 150; // ms
+    const trailDuration = waves.length > 25 ? 45 : (waves.length > 10 ? 80 : 140);
+    const waveDelay = waves.length > 25 ? 20 : (waves.length > 10 ? 40 : 75);
     const startTime = performance.now();
 
     function drawTrails(now) {
@@ -928,7 +1029,7 @@ function executeCascadeSequence(data, waves) {
 
         // Delay to next wave
         currentWaveIdx++;
-        setTimeout(runNextWave, 80);
+        setTimeout(runNextWave, waveDelay);
       }
     }
 
@@ -1132,6 +1233,7 @@ function getCM(r, c, rows, cols) {
 function onCellClick(e) {
   const cell = e.target.closest('.cell.clickable');
   if (!cell || isAnimatingFX) return;
+  unlockAudioContext();
   socket.emit('place_orb', {
     roomCode: myRoomCode,
     row: parseInt(cell.dataset.row),

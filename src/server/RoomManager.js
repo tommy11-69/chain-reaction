@@ -1,4 +1,4 @@
-﻿'use strict';
+'use strict';
 
 const GameEngine = require('../engine/GameEngine');
 const { PLAYER_COLORS, DEFAULT_ROWS, DEFAULT_COLS } = require('../shared/constants');
@@ -48,6 +48,20 @@ class Room {
       const next = this.players.find(pl => pl.connected);
       this.hostId = next ? next.id : null;
     }
+
+    // In an active game, check if only one connected player remains
+    if (this.engine && this.status === 'playing') {
+      const connected = this.players.filter(pl => pl.connected);
+      if (connected.length === 1) {
+        const winner = this.engine.players.find(pl => pl.id === connected[0].id);
+        if (winner) {
+          this.engine.status = 'finished';
+          this.engine.winner = winner;
+          this.status = 'finished';
+        }
+      }
+    }
+
     this._touch();
     return true;
   }
@@ -63,6 +77,13 @@ class Room {
     if (this.engine) {
       const ep = this.engine.players.find(pl => pl.id === oldSocketId);
       if (ep) ep.id = newSocketId;
+      for (let r = 0; r < this.engine.rows; r++) {
+        for (let c = 0; c < this.engine.cols; c++) {
+          if (this.engine.grid[r][c].owner === oldSocketId) {
+            this.engine.grid[r][c].owner = newSocketId;
+          }
+        }
+      }
     }
     this._touch();
     return p;
