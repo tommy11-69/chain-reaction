@@ -305,6 +305,31 @@ describe('Victory Conditions', () => {
     assert.equal(e.players[1].alive, false);
     assert.equal(e.players[2].alive, false);
   });
+
+  test('cascade terminates immediately upon wipeout without phantom waves', () => {
+    const e = make2P(3, 3);
+    // Turn 0: p1 -> (1,0) [1 orb]
+    e.placeOrb('p1', 1, 0);
+    // Turn 1: p2 -> (0,1) [1 orb]
+    e.placeOrb('p2', 0, 1);
+    // Turn 2: p1 -> (0,0) [1 orb, CM=2]
+    e.placeOrb('p1', 0, 0);
+    // Turn 3: p2 -> (0,1) [2 orbs, CM=3] - p2 only owns (0,1)
+    e.placeOrb('p2', 0, 1);
+
+    // Turn 4: p1 -> (0,0) [2nd orb -> EXPLODES into (0,1) and (1,0)]
+    // Wave 1 converts p2's cell (0,1) to p1.
+    // (0,1) now has 3 orbs (at CM=3).
+    // Without early exit, wave 2 would explode (0,1) into (0,0), (0,2), (1,1).
+    // With early exit, wipeout is detected immediately after wave 1, stopping phantom waves!
+    const res = e.placeOrb('p1', 0, 0);
+    assert.equal(res.success, true);
+    assert.equal(e.status, 'finished');
+    assert.equal(e.winner.id, 'p1');
+    assert.equal(e.players[1].alive, false);
+    assert.equal(e.players[1].orbCount, 0);
+    assert.equal(res.waves.length, 1, 'Cascade must stop immediately at wave 1 upon wipeout');
+  });
 });
 
 // ─── Turn Advancement ─────────────────────────────────────────────────────────

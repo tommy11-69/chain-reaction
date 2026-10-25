@@ -99,6 +99,15 @@ class GameEngine {
         waveData.push({ row: r, col: c, neighbors });
       }
       waves.push(waveData);
+
+      // Early exit: if wipeout happened this wave, stop cascading
+      // Guard: only check wipeout after at least 2 moves have been made or 2 players have played
+      this._recalculateOrbCounts();
+      const playersWithOrbs = this.players.filter(p => p.orbCount > 0);
+      const playersWhoPlayed = this.players.filter(p => p.hasPlayed);
+      if (playersWithOrbs.length === 1 && (this.turnNumber >= 2 || playersWhoPlayed.length >= 2)) {
+        break;
+      }
     }
 
     // Recount all player orbs from the grid

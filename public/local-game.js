@@ -311,11 +311,6 @@ function getCriticalMass(row, col) {
 }
 
 function getNeighbors(row, col) {
-  const nb = [];
-  if (row > 0) nb.push([row - 1, col]);
-  if (row < boardRows - 1) nb.push([row + 1, col]);
-  if (col > 0) nb.push([row, col - 1]);
-  if (col < boardCols - 1) nb.push([row + 1, col + 1]); // neighbor helper check
   return [
     row > 0 ? [row - 1, col] : null,
     row < boardRows - 1 ? [row + 1, col] : null,
@@ -420,6 +415,14 @@ function runCascade(triggeringPlayerId) {
       waveData.push({ row: r, col: c, neighbors });
     }
     waves.push(waveData);
+
+    // Early exit: if wipeout happened this wave, stop cascading
+    recalculateOrbCounts();
+    const playersWithOrbs = enginePlayers.filter(p => p.orbCount > 0);
+    const playersWhoPlayed = enginePlayers.filter(p => p.hasPlayed);
+    if (playersWithOrbs.length === 1 && (turnNumber >= 2 || playersWhoPlayed.length >= 2)) {
+      break;
+    }
   }
 
   recalculateOrbCounts();
@@ -590,7 +593,12 @@ function executeCascadeFX(waves, burstPlayer, onComplete) {
       const cell = board.children[idx];
       if (cell) {
         cell.classList.add('bursting');
-        setTimeout(() => cell.classList.remove('bursting'), 260);
+        setTimeout(() => {
+          cell.classList.remove('bursting');
+          cell.querySelectorAll('.orb-cluster, .orb').forEach(o => o.remove());
+          cell.style.removeProperty('--cell-color');
+          cell.classList.remove('owned', 'critical');
+        }, 260);
 
         const r1 = cell.getBoundingClientRect();
         const startX = r1.left - fR.left + r1.width / 2;
@@ -672,7 +680,11 @@ function executeCascadeFX(waves, burstPlayer, onComplete) {
       } else {
         if (ctx) ctx.clearRect(0, 0, canvas.width, canvas.height);
         trails.forEach(t => {
-          t.targetCell.classList.add('receiving-ripple');
+          t.targetCell.classList.add('receiving-ripple', 'owned');
+          t.targetCell.style.setProperty('--cell-color', burstColor);
+          t.targetCell.querySelectorAll('.orb').forEach(orb => {
+            orb.style.setProperty('--orb-color', burstColor);
+          });
           setTimeout(() => t.targetCell.classList.remove('receiving-ripple'), 260);
         });
         currentWaveIdx++;

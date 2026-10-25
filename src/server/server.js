@@ -184,14 +184,7 @@ io.on('connection', socket => {
       hostId:  room.hostId,
     });
 
-    if (room.status === 'finished' && room.engine) {
-      io.to(room.code).emit('state_update', {
-        state: room.engine.getState(),
-        waves: [],
-        lastMove: null,
-        commentary: null,
-      });
-    } else if (room.status === 'playing') {
+    if (room.status === 'playing') {
       room.scheduleAutoSkip(io);
     }
   });

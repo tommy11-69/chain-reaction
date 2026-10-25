@@ -17,6 +17,7 @@ let gridSize       = { rows: 9, cols: 6 };
 let isAnimatingFX  = false;
 let fxQueue        = [];
 let pendingExitCallback = null;
+let gameOverTriggered = false;
 
 // Settings
 let audioEnabled   = false;
@@ -901,6 +902,7 @@ function initNavigationGuards() {
 
 function onLeftRoom() {
   clearStoredSession();
+  gameOverTriggered = false;
   myRoomCode = null;
   myPlayerId = null;
   currentState = null;
@@ -1048,6 +1050,7 @@ function startGame() {
 
 // ─── Game Started ────────────────────────────────────────────────────────────
 function onGameStarted(data) {
+  gameOverTriggered = false;
   currentState  = data.state;
   prevGridFlat  = null;
 
@@ -1117,6 +1120,11 @@ function handleCommentary(commentary) {
 
 // ─── State Update & Cascade Processing ───────────────────────────────────────
 function onStateUpdate(data) {
+  if (gameOverTriggered) return;
+  if (data.state && data.state.status === 'finished') {
+    gameOverTriggered = true;
+  }
+
   if (data.skippedPlayer) {
     showToast(`${data.skippedPlayer} turn skipped (disconnected)`, 'warning');
   }
@@ -1229,7 +1237,12 @@ function executeCascadeSequence(data, waves) {
       const cell = board.children[idx];
       if (cell) {
         cell.classList.add('bursting');
-        setTimeout(() => cell.classList.remove('bursting'), 260);
+        setTimeout(() => {
+          cell.classList.remove('bursting');
+          cell.querySelectorAll('.orb-cluster, .orb').forEach(o => o.remove());
+          cell.style.removeProperty('--cell-color');
+          cell.classList.remove('owned', 'critical');
+        }, 260);
 
         const r1 = cell.getBoundingClientRect();
         const fR = $('board-frame').getBoundingClientRect();
@@ -1339,7 +1352,11 @@ function executeCascadeSequence(data, waves) {
 
         // Impact on receiving cells
         trails.forEach(t => {
-          t.targetCell.classList.add('receiving-ripple');
+          t.targetCell.classList.add('receiving-ripple', 'owned');
+          t.targetCell.style.setProperty('--cell-color', burstColor);
+          t.targetCell.querySelectorAll('.orb').forEach(orb => {
+            orb.style.setProperty('--orb-color', burstColor);
+          });
           setTimeout(() => t.targetCell.classList.remove('receiving-ripple'), 280);
         });
 

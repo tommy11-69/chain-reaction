@@ -333,7 +333,7 @@ class RoomManager {
   }
 
   _startGarbageCollector() {
-    setInterval(() => {
+    const gcInterval = setInterval(() => {
       const TEN_MIN = 10 * 60 * 1000;
       const now = Date.now();
       for (const [code, room] of this.rooms.entries()) {
@@ -344,6 +344,7 @@ class RoomManager {
         }
       }
     }, 60_000);
+    if (gcInterval.unref) gcInterval.unref();
   }
 }
 
