@@ -73,6 +73,7 @@ let gameStatus = 'setup'; // 'setup' | 'playing' | 'finished'
 let winner = null;
 let moveHistory = []; // For Undo functionality
 let isAnimatingFX = false;
+let passPhoneModalShown = false;
 
 // ─── DOM Helpers ─────────────────────────────────────────────────────────────
 const $ = id => document.getElementById(id);
@@ -181,6 +182,19 @@ function initSetupScreen() {
 
   $('btn-start-local').onclick = startLocalGame;
   $('btn-pass-ready').onclick = dismissTurnModal;
+  if ($('btn-pass-dont-show-again')) {
+    $('btn-pass-dont-show-again').onclick = () => {
+      localStorage.setItem('cr_local_pass_modal_disabled', 'true');
+      dismissTurnModal();
+      showToast('Pass phone reminder disabled for future games!', 'info');
+    };
+  }
+  const turnModalEl = $('turn-change-modal');
+  if (turnModalEl) {
+    turnModalEl.onclick = (e) => {
+      if (e.target === turnModalEl) dismissTurnModal();
+    };
+  }
   $('btn-local-undo').onclick = undoLastMove;
   $('btn-local-restart').onclick = restartCurrentMatch;
   $('btn-local-play-again').onclick = restartCurrentMatch;
@@ -237,6 +251,7 @@ function showScreen(screen) {
 // ─── Local Engine Logic ──────────────────────────────────────────────────────
 function startLocalGame() {
   getAudioContext();
+  passPhoneModalShown = false;
   const [r, c] = $('local-grid-size').value.split('x').map(Number);
   boardRows = r;
   boardCols = c;
@@ -278,6 +293,7 @@ function startLocalGame() {
 
 function restartCurrentMatch() {
   // Re-use current players and restart clean
+  passPhoneModalShown = false;
   grid = Array.from({ length: boardRows }, () =>
     Array.from({ length: boardCols }, () => ({ owner: null, orbs: 0 }))
   );
@@ -382,8 +398,11 @@ function onMoveFinished(waves) {
   renderPlayerList();
   renderBoard();
 
-  // Prompt turn switch modal
-  promptPassPhoneModal();
+  // Prompt turn switch modal - ONLY ONCE on the first turn transition
+  if (!passPhoneModalShown) {
+    passPhoneModalShown = true;
+    promptPassPhoneModal();
+  }
 }
 
 function runCascade(triggeringPlayerId) {
@@ -526,6 +545,7 @@ function undoLastMove() {
 // ─── Pass the Phone Modal ────────────────────────────────────────────────────
 function promptPassPhoneModal() {
   if (gameStatus !== 'playing') return;
+  if (localStorage.getItem('cr_local_pass_modal_disabled') === 'true') return;
   const nextPlayer = enginePlayers[currentPlayerIndex];
   if (!nextPlayer) return;
 
