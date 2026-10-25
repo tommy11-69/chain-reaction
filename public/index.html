@@ -36,6 +36,10 @@
       <span class="util-dot active" id="motion-dot"></span>
       <span id="motion-label">FX: Vera Level</span>
     </button>
+    <button id="util-tutorial-btn" class="util-btn util-guide" title="Epdi Aadradhu? (Tutorial)" aria-label="Tutorial Guide">
+      <span class="util-dot active" style="background:var(--accent-cyan);box-shadow:0 0 6px var(--accent-cyan)"></span>
+      <span id="guide-label">Guide 📖</span>
+    </button>
   </nav>
 
   <!-- Notification Toast -->
@@ -53,7 +57,7 @@
           <span class="glyph-ring"></span>
         </div>
         <h1 class="game-title">Chain Reaction</h1>
-        <p class="game-subtitle">motha board-um blast aaga pogudhu &middot; 2&ndash;4 aalunga</p>
+        <p class="game-subtitle">motha board-um blast aaga pogudhu &middot; 2&ndash;8 aalunga</p>
       </header>
 
       <div class="panel main-panel">
@@ -70,6 +74,9 @@
           </button>
           <button id="show-join-btn" class="btn btn-secondary">
             Friend Room-ku Poga (Join)
+          </button>
+          <button id="show-tutorial-btn" class="btn btn-tutorial">
+            📖 Epdi Aadradhu? (Noobies Guide)
           </button>
         </div>
 
@@ -123,7 +130,7 @@
         <div class="players-section">
           <div class="section-header-row">
             <span class="section-label">Aadaporavanga (Players)</span>
-            <span id="player-count" class="player-count-badge">0 / 4</span>
+            <span id="player-count" class="player-count-badge">0 / 8</span>
           </div>
           <ul id="players-list" class="players-list" aria-label="Lobby players"></ul>
         </div>
@@ -181,6 +188,10 @@
           <button id="ingame-sound-btn" class="hud-pill-btn" title="Satham On/Off" aria-label="Toggle audio">
             <span class="hud-pill-dot" id="ingame-sound-dot"></span>
             <span id="ingame-sound-text">SATHAM</span>
+          </button>
+          <button id="ingame-help-btn" class="hud-pill-btn" title="Aata Vidhi (Rules)" aria-label="Game Rules">
+            <span class="hud-pill-dot active" style="background:var(--accent-cyan);box-shadow:0 0 5px var(--accent-cyan)"></span>
+            <span>VAZHI 📖</span>
           </button>
         </div>
       </header>

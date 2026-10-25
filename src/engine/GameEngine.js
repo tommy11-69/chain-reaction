@@ -10,12 +10,12 @@ class GameEngine {
   /**
    * @param {number} rows
    * @param {number} cols
-   * @param {Array<{id:string, name:string, color:string}>} playerDefs  2-4 entries
+   * @param {Array<{id:string, name:string, color:string}>} playerDefs  2-8 entries
    */
   constructor(rows, cols, playerDefs) {
     if (rows < 2 || cols < 2) throw new Error('Grid must be at least 2x2');
-    if (playerDefs.length < 2 || playerDefs.length > 4)
-      throw new Error('Need 2-4 players');
+    if (playerDefs.length < 2 || playerDefs.length > 8)
+      throw new Error('Need 2-8 players');
 
     this.rows = rows;
     this.cols = cols;

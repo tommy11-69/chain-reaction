@@ -1,7 +1,7 @@
 'use strict';
 
 const GameEngine = require('../engine/GameEngine');
-const { PLAYER_COLORS, DEFAULT_ROWS, DEFAULT_COLS } = require('../shared/constants');
+const { PLAYER_COLORS, DEFAULT_ROWS, DEFAULT_COLS, MAX_PLAYERS } = require('../shared/constants');
 
 // ─── Room ────────────────────────────────────────────────────────────────────
 
@@ -23,8 +23,8 @@ class Room {
   // ── Player management ──────────────────────────────────────────────────────
 
   addPlayer(socketId, name) {
-    if (this.players.length >= 4)
-      return { success: false, reason: 'Room is full (max 4 players)' };
+    if (this.players.length >= MAX_PLAYERS)
+      return { success: false, reason: `Room is full (max ${MAX_PLAYERS} players)` };
     if (this.status !== 'waiting')
       return { success: false, reason: 'Game has already started' };
     if (this.players.some(p => p.connected && p.name === name))

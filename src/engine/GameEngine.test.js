@@ -372,3 +372,48 @@ describe('Full game smoke test', () => {
     assert.ok(e.status === 'finished' || done || e.turnNumber <= moves.length);
   });
 });
+
+// ─── 8-Player Support ─────────────────────────────────────────────────────────
+
+describe('8-Player Support', () => {
+  const { PLAYER_COLORS } = require('../shared/constants');
+
+  test('8 players can initialize and rotate turns properly', () => {
+    const players = Array.from({ length: 8 }, (_, i) => ({
+      id: `p${i + 1}`,
+      name: `Player ${i + 1}`,
+      color: PLAYER_COLORS[i],
+    }));
+
+    const e = new GameEngine(9, 6, players);
+    assert.equal(e.players.length, 8);
+    assert.equal(e.status, 'playing');
+
+    // Each of the 8 players places one orb in sequence
+    for (let i = 0; i < 8; i++) {
+      assert.equal(e.getCurrentPlayer().id, `p${i + 1}`);
+      const res = e.placeOrb(`p${i + 1}`, i, 0);
+      assert.equal(res.success, true);
+    }
+
+    // Turn wraps back to p1
+    assert.equal(e.getCurrentPlayer().id, 'p1');
+    assert.equal(e.turnNumber, 8);
+  });
+
+  test('rejects less than 2 players or more than 8 players in constructor', () => {
+    assert.throws(() => {
+      new GameEngine(5, 5, [{ id: 'p1', name: 'Alone', color: '#fff' }]);
+    }, /Need 2-8 players/);
+
+    const ninePlayers = Array.from({ length: 9 }, (_, i) => ({
+      id: `p${i + 1}`,
+      name: `Player ${i + 1}`,
+      color: '#fff',
+    }));
+    assert.throws(() => {
+      new GameEngine(5, 5, ninePlayers);
+    }, /Need 2-8 players/);
+  });
+});
+

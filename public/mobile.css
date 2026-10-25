@@ -283,7 +283,7 @@
     width: 100% !important;
     flex-direction: row !important;
     align-items: center !important;
-    justify-content: center;
+    justify-content: flex-start !important;
     border-right: none !important;
     border-bottom: 1px solid var(--border);
     padding: 0.32rem 0.65rem;
@@ -292,6 +292,11 @@
     overflow-y: hidden;
     flex-shrink: 0;
     -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+  }
+
+  .game-sidebar::-webkit-scrollbar {
+    display: none;
   }
 
   .sidebar-header {
@@ -301,7 +306,7 @@
   .game-players-list {
     flex-direction: row !important;
     gap: 0.45rem;
-    justify-content: center;
+    justify-content: flex-start !important;
     align-items: center;
     padding: 1px 2px;
   }

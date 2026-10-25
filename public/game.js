@@ -712,7 +712,7 @@ function updateLobbyPlayers(players, hostId) {
   const startBtn = $('start-game-btn');
   const connected = players.filter(p => p.connected);
 
-  cnt.textContent = `${connected.length} / 4`;
+  cnt.textContent = `${connected.length} / 8`;
   if (startBtn) startBtn.disabled = connected.length < 2;
 
   list.innerHTML = '';

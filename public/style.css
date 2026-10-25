@@ -34,11 +34,15 @@
   --accent-cyan:   #00F5FF; /* Electric Aqua */
   --accent-amber:  #FFB703; /* Solar Dab Amber */
 
-  /* High-Voltage Trippy Player Tints */
+  /* High-Voltage Trippy Player Tints (Up to 8 Players) */
   --p1: #2DFE54; /* Cannabis Electric Green */
   --p2: #FF007F; /* Acid Magenta */
   --p3: #00F5FF; /* Electric Cyan */
   --p4: #FFB703; /* Solar Dab Amber */
+  --p5: #B537F2; /* Ultraviolet Violet */
+  --p6: #FF3333; /* Toxic Flame Red */
+  --p7: #FFE600; /* Electric Lemon Haze */
+  --p8: #00FFA3; /* Mint Trichome Teal */
 
   --font-sans: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   --font-mono: 'JetBrains Mono', monospace;
@@ -519,6 +523,9 @@ select.select-input option {
   display: flex;
   flex-direction: column;
   gap: 0.45rem;
+  max-height: 250px;
+  overflow-y: auto;
+  padding-right: 2px;
 }
 
 .player-item {

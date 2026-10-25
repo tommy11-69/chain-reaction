@@ -5,7 +5,7 @@
   "main": "src/server/server.js",
   "scripts": {
     "start": "node src/server/server.js",
-    "test": "node --test src/engine/GameEngine.test.js src/server/commentaryEngine.test.js"
+    "test": "node --test src/engine/GameEngine.test.js src/server/commentaryEngine.test.js src/server/RoomManager.test.js"
   },
   "engines": {
     "node": ">=18.0.0"
