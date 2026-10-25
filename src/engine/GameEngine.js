@@ -135,29 +135,26 @@ class GameEngine {
   /**
    * Declare a winner when:
    * 1. Only one player remains alive, OR
-   * 2. After at least 2 player moves, all orbs on the board belong to a single player
-   *    and all other players have 0 orbs (instant wipeout victory).
+   * 2. All orbs on the board belong to a single player and at least 2 moves have taken place,
+   *    or any opponent has 0 orbs after having played.
+   *    (Instant wipeout victory: no infinite loop, immediate podium finish).
    */
   _checkVictory() {
-    const playersWhoPlayed = this.players.filter(p => p.hasPlayed);
-    // Don't declare victory on move 1 before opponent has had their first turn
-    if (playersWhoPlayed.length < Math.min(2, this.players.length)) {
-      return;
-    }
-
     const alive = this.players.filter(p => p.alive);
     const playersWithOrbs = this.players.filter(p => p.orbCount > 0);
+    const playersWhoPlayed = this.players.filter(p => p.hasPlayed);
 
-    // Condition 1: Exactly one alive player remains
-    if (alive.length === 1) {
+    // Condition 1: Exactly one alive player remains (and at least 1 move was made)
+    if (alive.length === 1 && this.turnNumber >= 1) {
       this.status = 'finished';
       this.winner = alive[0];
       return;
     }
 
     // Condition 2: Wipeout! All orbs on the board belong to only ONE player
-    // and all other players are wiped out to 0 orbs.
-    if (playersWithOrbs.length === 1 && playersWhoPlayed.length >= 2) {
+    // This happens when one player blasts and completely swallows/wipes out every opponent orb.
+    // Guard: ensure it's not literally the first move of the whole game where player 1 just placed 1 orb.
+    if (playersWithOrbs.length === 1 && (this.turnNumber >= 2 || playersWhoPlayed.length >= 2)) {
       const winner = playersWithOrbs[0];
       // Mark all other players dead
       for (const p of this.players) {
@@ -166,6 +163,7 @@ class GameEngine {
           p.orbCount = 0;
         }
       }
+      winner.alive = true;
       this.status = 'finished';
       this.winner = winner;
       return;

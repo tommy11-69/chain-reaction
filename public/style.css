@@ -2018,6 +2018,11 @@ body.reduce-motion .cell.critical::before {
   box-shadow: 0 0 20px rgba(0, 245, 255, 0.28);
 }
 
+/* ── Global Utility: Hidden ────────────────────────────────── */
+.hidden {
+  display: none !important;
+}
+
 /* ── Live Match Resume Banner ──────────────────────────────── */
 .resume-banner {
   background: linear-gradient(135deg, rgba(45, 254, 84, 0.12), rgba(0, 245, 255, 0.08));
@@ -2029,6 +2034,10 @@ body.reduce-motion .cell.critical::before {
   flex-direction: column;
   gap: 0.6rem;
   animation: glowPulse 2.8s ease-in-out infinite alternate;
+}
+
+.resume-banner.hidden {
+  display: none !important;
 }
 
 .resume-badge {

@@ -176,7 +176,14 @@ class Room {
 
     const result = this.engine.placeOrb(socketId, row, col);
     if (result.success) {
-      if (this.engine.status === 'finished') this.status = 'finished';
+      if (this.engine.status === 'finished') {
+        this.status = 'finished';
+        if (this.autoSkipTimer) {
+          clearTimeout(this.autoSkipTimer);
+          this.autoSkipTimer = null;
+        }
+        this.cancelDisconnectGrace();
+      }
       this._touch();
     }
     return result;
@@ -225,11 +232,21 @@ class Room {
       const rp = this.players.find(p => p.id === cur.id);
       if (rp && !rp.connected) {
         this.engine.skipTurn();
+        if (this.engine.status === 'finished') {
+          this.status = 'finished';
+          this.cancelDisconnectGrace();
+          if (this.autoSkipTimer) {
+            clearTimeout(this.autoSkipTimer);
+            this.autoSkipTimer = null;
+          }
+        }
         io.to(this.code).emit('state_update', {
           state: this.engine.getState(),
           skippedPlayer: rp.name,
         });
-        this.scheduleAutoSkip(io); // recurse in case next is also disconnected
+        if (this.status === 'playing') {
+          this.scheduleAutoSkip(io); // recurse in case next is also disconnected
+        }
       }
     }, 30_000);
 

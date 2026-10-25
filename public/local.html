@@ -1,0 +1,434 @@
+<!DOCTYPE html>
+<html lang="ta">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+  <meta name="theme-color" content="#050805" />
+  <title>Chain Reaction — Local Pass & Play 📱💥</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700;800;900&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
+  <link rel="stylesheet" href="mobile.css" />
+  <style>
+    /* ── Local Mode Specific Overrides & Enhancements ──────────────── */
+    .local-topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      width: 100%;
+      padding: 0.6rem 0.8rem;
+      background: rgba(5, 8, 5, 0.95);
+      border-bottom: 1px solid var(--border-subtle);
+      z-index: 50;
+    }
+    .local-brand-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.72rem;
+      font-weight: 700;
+      color: var(--accent-green);
+      letter-spacing: 0.08em;
+    }
+    .local-pill-badge {
+      background: rgba(45, 254, 84, 0.12);
+      border: 1px solid rgba(45, 254, 84, 0.3);
+      padding: 2px 7px;
+      border-radius: 999px;
+      font-size: 0.64rem;
+      color: var(--accent-green);
+    }
+    .player-setup-card {
+      background: rgba(12, 18, 12, 0.75);
+      border: 1px solid var(--border-subtle);
+      border-radius: 12px;
+      padding: 0.85rem;
+      margin-bottom: 0.65rem;
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      transition: border-color 0.2s ease, box-shadow 0.2s ease;
+    }
+    .player-setup-card:focus-within {
+      border-color: var(--card-color, var(--accent-green));
+      box-shadow: 0 0 14px rgba(45, 254, 84, 0.15);
+    }
+    .player-color-preview {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      border: 2px solid rgba(255, 255, 255, 0.3);
+      flex-shrink: 0;
+      box-shadow: 0 0 10px currentColor;
+    }
+    .player-setup-inputs {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+    .player-setup-label {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.68rem;
+      color: var(--text-dim);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+    .player-name-input {
+      background: rgba(0, 0, 0, 0.5);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      border-radius: 6px;
+      color: #fff;
+      font-size: 0.88rem;
+      padding: 0.4rem 0.6rem;
+      width: 100%;
+    }
+    .player-count-selector {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: rgba(0, 0, 0, 0.4);
+      border: 1px solid var(--border-subtle);
+      border-radius: 10px;
+      padding: 0.5rem 0.8rem;
+      margin-bottom: 1rem;
+    }
+    .count-stepper-btn {
+      width: 38px;
+      height: 38px;
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      border-radius: 8px;
+      color: #fff;
+      font-size: 1.3rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      touch-action: manipulation;
+    }
+    .count-stepper-btn:active {
+      background: var(--accent-green);
+      color: #000;
+    }
+    .count-display {
+      font-family: 'Outfit', sans-serif;
+      font-size: 1.25rem;
+      font-weight: 800;
+      color: var(--accent-green);
+    }
+    /* Turn Overlay Modal (Pass the Phone) */
+    .turn-change-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(5, 8, 5, 0.88);
+      backdrop-filter: blur(10px);
+      z-index: 1000;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 2rem;
+      text-align: center;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .turn-change-overlay.visible {
+      opacity: 1;
+      pointer-events: auto;
+    }
+    .turn-change-card {
+      background: rgba(14, 22, 14, 0.95);
+      border: 2px solid var(--next-player-color, var(--accent-green));
+      border-radius: 20px;
+      padding: 2rem 1.5rem;
+      width: 100%;
+      max-width: 360px;
+      box-shadow: 0 0 40px rgba(0,0,0,0.8), 0 0 25px var(--next-player-color, var(--accent-green));
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 1.1rem;
+      animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+    @keyframes popIn {
+      from { transform: scale(0.85); opacity: 0; }
+      to { transform: scale(1); opacity: 1; }
+    }
+    .pass-phone-badge {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.72rem;
+      background: rgba(255, 255, 255, 0.08);
+      padding: 4px 10px;
+      border-radius: 999px;
+      color: var(--text-dim);
+      letter-spacing: 0.1em;
+    }
+    .next-player-avatar {
+      width: 68px;
+      height: 68px;
+      border-radius: 50%;
+      background: var(--next-player-color, var(--accent-green));
+      box-shadow: 0 0 30px var(--next-player-color, var(--accent-green));
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.8rem;
+    }
+    .next-player-title {
+      font-family: 'Outfit', sans-serif;
+      font-size: 1.5rem;
+      font-weight: 800;
+      color: #fff;
+      line-height: 1.2;
+    }
+    .next-player-tagline {
+      font-size: 0.82rem;
+      color: var(--text-secondary);
+      line-height: 1.35;
+    }
+    .ready-tap-btn {
+      width: 100%;
+      padding: 0.85rem;
+      background: var(--next-player-color, var(--accent-green));
+      color: #050805;
+      font-family: 'Outfit', sans-serif;
+      font-weight: 800;
+      font-size: 1rem;
+      border: none;
+      border-radius: 12px;
+      cursor: pointer;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+      touch-action: manipulation;
+    }
+    .ready-tap-btn:active {
+      transform: scale(0.97);
+    }
+    .local-action-btns {
+      display: flex;
+      gap: 0.4rem;
+      align-items: center;
+    }
+    .local-icon-btn {
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      border-radius: 8px;
+      color: #fff;
+      padding: 0.4rem 0.65rem;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.7rem;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+    }
+    .local-icon-btn:active {
+      background: rgba(255, 255, 255, 0.15);
+    }
+  </style>
+</head>
+<body class="mode-local">
+
+  <!-- Ambient background glow layers -->
+  <div class="ambient-layer ambient-grid" aria-hidden="true"></div>
+  <div class="ambient-layer ambient-radial" aria-hidden="true"></div>
+  <div class="ambient-layer ambient-vignette" aria-hidden="true"></div>
+
+  <!-- Notification Toast -->
+  <div id="toast" class="toast" role="alert" aria-live="assertive"></div>
+
+  <!-- ═══════════════════════════════════════════════════════
+       SCREEN: LOCAL SETUP (Pass & Play Config)
+  ════════════════════════════════════════════════════════ -->
+  <div id="screen-local-setup" class="screen active">
+    <div class="screen-inner" style="max-width: 480px; margin: 0 auto;">
+
+      <header class="branding-area" style="margin-bottom: 0.75rem;">
+        <div class="local-brand-badge" style="justify-content: center; margin-bottom: 0.4rem;">
+          <span>📱 PASS &amp; PLAY LOCAL MODE</span>
+          <span class="local-pill-badge">OFFLINE</span>
+        </div>
+        <h1 class="game-title" style="font-size: 1.8rem;">Orey Mobile-la Aatam</h1>
+        <p class="game-subtitle">2 lendhu 8 peru varaikkum phone-a maathi maathi aadaalam!</p>
+      </header>
+
+      <div class="panel">
+        <!-- Number of Players Stepper -->
+        <div class="player-count-selector">
+          <div>
+            <div style="font-family:'JetBrains Mono',monospace; font-size:0.75rem; color:var(--text-dim);">AATAKARANGA COUNT</div>
+            <div style="font-size:0.8rem; color:var(--text-secondary);">Ethanai peru aadaporanga?</div>
+          </div>
+          <div style="display: flex; align-items: center; gap: 0.75rem;">
+            <button id="btn-dec-players" class="count-stepper-btn" aria-label="Decrease player count">−</button>
+            <span id="display-player-count" class="count-display">2</span>
+            <button id="btn-inc-players" class="count-stepper-btn" aria-label="Increase player count">+</button>
+          </div>
+        </div>
+
+        <!-- Grid Size Selector -->
+        <div class="form-group" style="margin-bottom: 1rem;">
+          <label for="local-grid-size">Board Size Enna Veppom?</label>
+          <select id="local-grid-size" class="select-input">
+            <option value="9x6" selected>Standard 9 &times; 6 (Portrait Mobile)</option>
+            <option value="6x6">Compact 6 &times; 6 (Quick Fast Aatam)</option>
+            <option value="9x9">Periya Board 9 &times; 9 (Full Blast Chaos)</option>
+            <option value="6x9">Wide 6 &times; 9 (Neelam)</option>
+          </select>
+        </div>
+
+        <!-- Tamil Slang Gaali Mode Toggle -->
+        <div style="display:flex; align-items:center; justify-content:space-between; background:rgba(0,0,0,0.3); border:1px solid var(--border-subtle); border-radius:10px; padding:0.6rem 0.8rem; margin-bottom:1rem;">
+          <div>
+            <div style="font-family:'Outfit',sans-serif; font-weight:700; font-size:0.85rem; color:#fff;">💀 Tamil Slang Gaali Mode</div>
+            <div style="font-size:0.72rem; color:var(--text-dim);">Move pannum bothu Tanglish roast varum</div>
+          </div>
+          <button id="local-slang-toggle" class="hud-pill-btn" style="min-height:34px;">
+            <span class="hud-pill-dot active" id="local-slang-dot"></span>
+            <span id="local-slang-text">GAALI: ON</span>
+          </button>
+        </div>
+
+        <!-- Sound Toggle -->
+        <div style="display:flex; align-items:center; justify-content:space-between; background:rgba(0,0,0,0.3); border:1px solid var(--border-subtle); border-radius:10px; padding:0.6rem 0.8rem; margin-bottom:1rem;">
+          <div>
+            <div style="font-family:'Outfit',sans-serif; font-weight:700; font-size:0.85rem; color:#fff;">🔊 Satham (Tactile Pop &amp; Blast Audio)</div>
+            <div style="font-size:0.72rem; color:var(--text-dim);">Web Audio synthesized sound effects</div>
+          </div>
+          <button id="local-sound-toggle" class="hud-pill-btn" style="min-height:34px;">
+            <span class="hud-pill-dot active" id="local-sound-dot"></span>
+            <span id="local-sound-text">SATHAM: ON</span>
+          </button>
+        </div>
+
+        <!-- Dynamic Players Setup List -->
+        <div style="font-family:'JetBrains Mono',monospace; font-size:0.72rem; color:var(--text-dim); margin-bottom:0.5rem; text-transform:uppercase;">
+          Players Name &amp; Color
+        </div>
+        <div id="local-players-setup-list" style="display:flex; flex-direction:column; max-height:260px; overflow-y:auto; padding-right:4px;">
+          <!-- Populated by local-game.js -->
+        </div>
+
+        <!-- Action Buttons -->
+        <div style="display:flex; flex-direction:column; gap:0.6rem; margin-top:1rem;">
+          <button id="btn-start-local" class="btn btn-primary full-width" style="font-size:1rem; padding:0.85rem;">
+            Aatatha Aarambi da! (Start Match 💥)
+          </button>
+          <a href="index.html" class="btn btn-secondary full-width" style="text-align:center; text-decoration:none; padding:0.65rem; font-size:0.82rem;">
+            ← Online Multiplayer Mode-ku Poga
+          </a>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════════
+       SCREEN: LOCAL GAME ARENA
+  ════════════════════════════════════════════════════════ -->
+  <div id="screen-local-game" class="screen hidden">
+    <div class="game-layout">
+
+      <!-- Local In-Game Top Bar -->
+      <header class="local-topbar">
+        <div style="display: flex; align-items: center; gap: 8px;">
+          <a href="local.html" class="local-icon-btn" title="Exit to Setup" aria-label="Exit Local Match">
+            ✕ EXIT
+          </a>
+          <button id="btn-local-undo" class="local-icon-btn" title="Undo Move (Kadaisi move thappaa potutiya?)" aria-label="Undo Move">
+            ↩ UNDO
+          </button>
+        </div>
+
+        <div id="turn-indicator" class="turn-indicator" style="margin: 0 auto;">
+          <span class="turn-pulse-beacon"></span>
+          <span class="turn-dot"></span>
+          <span class="turn-text">—</span>
+        </div>
+
+        <div class="local-action-btns">
+          <button id="btn-local-restart" class="local-icon-btn" title="Restart Match" aria-label="Restart Match">
+            🔄 RESTART
+          </button>
+        </div>
+      </header>
+
+      <!-- Main Game Arena -->
+      <div class="game-body">
+
+        <!-- Sidebar / Player Tally -->
+        <aside class="game-sidebar" aria-label="Local Players">
+          <div class="sidebar-header">
+            <span class="sidebar-label">AATAKARANGA</span>
+          </div>
+          <div id="game-players-list" class="game-players-list"></div>
+        </aside>
+
+        <!-- Center Board -->
+        <main class="board-wrapper">
+          <div class="board-frame" id="board-frame">
+            <div id="game-board" class="game-board" role="grid" aria-label="Local Chain Reaction board"></div>
+            <!-- Canvas Overlay for Luminous Energy Waves & Trails -->
+            <canvas id="fx-canvas" class="fx-canvas" aria-hidden="true"></canvas>
+          </div>
+        </main>
+
+      </div>
+
+      <!-- Commentary Banner -->
+      <div id="commentary-banner" class="commentary-banner hidden" role="status" aria-live="polite">
+        <div class="commentary-header">
+          <span class="commentary-badge">💀 GAALI VIBE</span>
+          <span class="commentary-category" id="commentary-category">REACTION</span>
+        </div>
+        <p class="commentary-text" id="commentary-text"></p>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════════
+       PASS THE PHONE MODAL (Interstitial between turns)
+  ════════════════════════════════════════════════════════ -->
+  <div id="turn-change-modal" class="turn-change-overlay" aria-modal="true" role="dialog">
+    <div class="turn-change-card" id="turn-change-card">
+      <span class="pass-phone-badge">📱 PHONE-A MAATHU DA</span>
+      <div class="next-player-avatar" id="pass-player-avatar">👑</div>
+      <h3 class="next-player-title" id="pass-player-name">Player Name</h3>
+      <p class="next-player-tagline" id="pass-player-tagline">Un turn vandhuruchu! Screen-a thottu un orb-a podu!</p>
+      <button id="btn-pass-ready" class="ready-tap-btn">Naan Ready! Thodangalaam 🔥</button>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════════
+       SCREEN: LOCAL GAME OVER
+  ════════════════════════════════════════════════════════ -->
+  <div id="screen-local-gameover" class="screen hidden">
+    <div class="screen-inner" style="max-width: 440px; margin: 0 auto; text-align: center;">
+      <div class="panel gameover-panel">
+        <span class="eyebrow">AATAM MUDINJIDUCHU!</span>
+        <div id="winner-announcement" class="winner-announcement"></div>
+        <p class="gameover-subtext">Motha board-ayum oru round katti thookitaan! Vera level sambavam!</p>
+
+        <div style="display:flex; flex-direction:column; gap:0.6rem; width:100%; margin-top:1.25rem;">
+          <button id="btn-local-play-again" class="btn btn-primary full-width">
+            <span class="btn-indicator"></span> Innoru Match Podalaama? (Play Again)
+          </button>
+          <button id="btn-local-change-settings" class="btn btn-secondary full-width">
+            Players &amp; Board Settings Maathu
+          </button>
+          <a href="index.html" class="btn btn-tutorial full-width" style="text-decoration:none; text-align:center;">
+            🌐 Online Multiplayer-ku Poga
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Client-side Game Script -->
+  <script src="local-game.js"></script>
+</body>
+</html>

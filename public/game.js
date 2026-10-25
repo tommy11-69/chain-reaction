@@ -814,15 +814,20 @@ function saveSession(roomCode, playerName, playerToken) {
   try {
     const data = { roomCode, playerName, playerToken, savedAt: Date.now() };
     sessionStorage.setItem('cr_active_session', JSON.stringify(data));
-    localStorage.setItem('cr_last_session', JSON.stringify(data));
   } catch (_) {}
 }
 
 function getStoredSession() {
   try {
-    const raw = sessionStorage.getItem('cr_active_session') || localStorage.getItem('cr_last_session');
+    const raw = sessionStorage.getItem('cr_active_session');
     if (!raw) return null;
-    return JSON.parse(raw);
+    const data = JSON.parse(raw);
+    // Ignore sessions older than 30 minutes
+    if (Date.now() - (data.savedAt || 0) > 30 * 60 * 1000) {
+      clearStoredSession();
+      return null;
+    }
+    return data;
   } catch (_) {
     return null;
   }
@@ -841,11 +846,17 @@ function checkActiveSession() {
   const resumeCode = $('resume-code');
   if (session && session.roomCode && session.playerName) {
     if (resumeCode) resumeCode.textContent = session.roomCode;
-    if (banner) banner.classList.remove('hidden');
+    if (banner) {
+      banner.classList.remove('hidden');
+      banner.style.display = 'flex';
+    }
     const nameInput = $('player-name');
     if (nameInput && !nameInput.value) nameInput.value = session.playerName;
   } else {
-    if (banner) banner.classList.add('hidden');
+    if (banner) {
+      banner.classList.add('hidden');
+      banner.style.display = 'none';
+    }
   }
 }
 
@@ -1142,10 +1153,16 @@ function applyAuthoritativeState(state) {
   renderAll(currentState);
 
   if (currentState.status === 'finished') {
+    isAnimatingFX = false;
+    const fxCanvas = $('fx-canvas');
+    if (fxCanvas) {
+      const ctx = fxCanvas.getContext('2d');
+      if (ctx) ctx.clearRect(0, 0, fxCanvas.width, fxCanvas.height);
+    }
     setTimeout(() => {
       playVictory();
       showGameOver(currentState);
-    }, 700);
+    }, 400);
   }
 }
 
@@ -1478,9 +1495,9 @@ function renderBoard(state) {
         if (myPlayer) cell.style.setProperty('--cell-hover-color', myPlayer.color);
       }
 
-      // Critical mass indicator (one orb away from exploding)
+      // Critical mass indicator (one orb away from exploding) - only while actively playing
       const cm = getCM(r, c, rows, cols);
-      if (owner && cellData.orbs === cm - 1) {
+      if (status === 'playing' && owner && cellData.orbs === cm - 1) {
         cell.classList.add('critical');
       }
 
@@ -1563,6 +1580,7 @@ function showGameOver(state) {
   $('rematch-btn').disabled    = false;
   $('rematch-btn').innerHTML   = '<span class="btn-indicator"></span> Innoru Match Podalaama? (Rematch)';
   $('rematch-info').textContent = '';
+  clearStoredSession();
   showScreen('gameover');
 }
 
