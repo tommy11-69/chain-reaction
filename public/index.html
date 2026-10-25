@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <title>Chain Reaction — Dark Tactical Cascade</title>
-  <meta name="description" content="A minimal, atmospheric multiplayer strategy game of critical mass and chain reactions." />
+  <title>Chain Reaction — Motha Sambavam Da! 💀</title>
+  <meta name="description" content="Chain Reaction multiplayer — Tamil friends 2 AM roast and chain reaction chaos." />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;600;700&display=swap" rel="stylesheet" />
@@ -18,15 +18,22 @@
   <!-- Film Grain Overlay -->
   <div class="film-grain" aria-hidden="true"></div>
 
-  <!-- Global Utility Controls (Sound, Motion) -->
+  <!-- Global Utility Controls (Sound, Motion, Slang Mode) -->
   <nav class="global-utils" aria-label="Settings">
-    <button id="audio-toggle-btn" class="util-btn" title="Toggle audio soundscape" aria-label="Toggle audio">
-      <span class="util-dot" id="audio-dot"></span>
-      <span id="audio-label">Sound: Off</span>
+    <button id="slang-toggle-btn" class="util-btn" title="Gaali Mode On/Off" aria-label="Toggle Slang Mode">
+      <span class="util-dot active" id="slang-dot"></span>
+      <span id="slang-label">Gaali: On</span>
     </button>
-    <button id="motion-toggle-btn" class="util-btn" title="Toggle effects intensity" aria-label="Toggle motion effects">
+    <button id="freq-toggle-btn" class="util-btn" title="Roast Frequency" aria-label="Slang Frequency">
+      <span id="freq-label">Roast: Med</span>
+    </button>
+    <button id="audio-toggle-btn" class="util-btn" title="Satham On/Off" aria-label="Toggle audio">
+      <span class="util-dot" id="audio-dot"></span>
+      <span id="audio-label">Satham: Off</span>
+    </button>
+    <button id="motion-toggle-btn" class="util-btn" title="VFX Level" aria-label="Toggle motion effects">
       <span class="util-dot active" id="motion-dot"></span>
-      <span id="motion-label">Motion: Full</span>
+      <span id="motion-label">FX: Vera Level</span>
     </button>
   </nav>
 
@@ -45,42 +52,42 @@
           <span class="glyph-ring"></span>
         </div>
         <h1 class="game-title">Chain Reaction</h1>
-        <p class="game-subtitle">tactical mass &middot; 2&ndash;4 players</p>
+        <p class="game-subtitle">motha board-um blast aaga pogudhu &middot; 2&ndash;4 aalunga</p>
       </header>
 
       <div class="panel main-panel">
         <div class="form-group">
-          <label for="player-name">Player Alias</label>
+          <label for="player-name">Dei Un Peru Ennada?</label>
           <input id="player-name" type="text" maxlength="20"
-                 placeholder="Enter callsign..." autocomplete="off" spellcheck="false" />
+                 placeholder="Un per-a type pannu da baadu..." autocomplete="off" spellcheck="false" />
         </div>
 
         <div class="btn-stack">
           <button id="create-room-btn" class="btn btn-primary">
             <span class="btn-indicator"></span>
-            Create Chamber
+            Pudhu Room?!
           </button>
           <button id="show-join-btn" class="btn btn-secondary">
-            Join Chamber
+            Friend Room-ku Po (Join)
           </button>
         </div>
 
         <div id="join-section" class="join-section hidden">
           <div class="form-group">
-            <label for="join-code">Chamber Code</label>
+            <label for="join-code">Room Code-a Thattu da</label>
             <input id="join-code" type="text" maxlength="6"
                    placeholder="XXXXXX" autocomplete="off"
                    spellcheck="false" class="code-input" />
           </div>
           <button id="join-room-btn" class="btn btn-primary full-width">
-            Enter Chamber
+            Ulla Vaa Da!
           </button>
         </div>
       </div>
 
       <footer class="manifesto-hint">
         <span class="hint-dot"></span>
-        <span>Reach critical mass to trigger cascading release</span>
+        <span>Critical mass aana motha edamum sitharidum da baadu! 💀</span>
       </footer>
 
     </div>
@@ -95,14 +102,14 @@
 
         <div class="lobby-header">
           <div>
-            <span class="eyebrow">Chamber</span>
-            <h2 class="section-title">Staging Area</h2>
+            <span class="eyebrow">AATATHUKKU READY-A?</span>
+            <h2 class="section-title">Lobby-la Wait Pannu da Baadu</h2>
           </div>
           <div class="room-code-block">
-            <span class="room-code-label">Passcode</span>
+            <span class="room-code-label">Room Code-u</span>
             <div class="room-code-row">
               <span id="lobby-room-code" class="room-code-value">——</span>
-              <button id="copy-code-btn" class="btn-icon" title="Copy chamber code" aria-label="Copy room code">
+              <button id="copy-code-btn" class="btn-icon" title="Code-a Copy Pannu da" aria-label="Copy room code">
                 <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                   <rect x="9" y="9" width="13" height="13" rx="2"></rect>
                   <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
@@ -114,7 +121,7 @@
 
         <div class="players-section">
           <div class="section-header-row">
-            <span class="section-label">Connected Souls</span>
+            <span class="section-label">Aadaporavanga (Players)</span>
             <span id="player-count" class="player-count-badge">0 / 4</span>
           </div>
           <ul id="players-list" class="players-list" aria-label="Lobby players"></ul>
@@ -122,20 +129,20 @@
 
         <div id="host-controls" class="host-controls hidden">
           <div class="form-group">
-            <label for="grid-size-select">Grid Architecture</label>
+            <label for="grid-size-select">Board Size Enna Veppom?</label>
             <select id="grid-size-select" class="select-input">
-              <option value="9x6">Standard 9 &times; 6</option>
-              <option value="6x9">Horizontal 6 &times; 9</option>
-              <option value="9x9">Expansive 9 &times; 9</option>
-              <option value="6x6">Compact 6 &times; 6</option>
+              <option value="9x6">Standard 9 &times; 6 (Proper Aatam)</option>
+              <option value="6x9">Wide 6 &times; 9 (Neelam Aatam)</option>
+              <option value="9x9">Periya Board 9 &times; 9 (Full Blast Sambavam)</option>
+              <option value="6x6">Quick 6 &times; 6 (Speed-a mudinjidum)</option>
             </select>
           </div>
           <button id="start-game-btn" class="btn btn-primary full-width" disabled>
-            Initiate Grid
+            Aatatha Aarambi da! (Start)
           </button>
         </div>
 
-        <p id="lobby-status" class="lobby-status">Waiting for host initiation...</p>
+        <p id="lobby-status" class="lobby-status">Host payya start pandra varaikkum amaidhiyaa iru da...</p>
       </div>
     </div>
   </div>
@@ -150,8 +157,8 @@
       <header class="game-topbar">
         <div class="topbar-left">
           <span class="topbar-brand">CHAIN REACTION</span>
-          <div class="topbar-room" id="game-room-badge" title="Chamber Code">
-            <span class="topbar-label">ROOM</span>
+          <div class="topbar-room" id="game-room-badge" title="Room Code-a Copy Pannu">
+            <span class="topbar-label">ROOM-U</span>
             <span id="game-room-code-display" class="topbar-code">——</span>
           </div>
         </div>
@@ -163,9 +170,16 @@
         </div>
 
         <div class="topbar-right">
-          <button id="ingame-sound-btn" class="hud-pill-btn" title="Toggle audio" aria-label="Toggle audio">
+          <button id="ingame-slang-btn" class="hud-pill-btn" title="Gaali Mode On/Off" aria-label="Toggle Slang Mode">
+            <span class="hud-pill-dot active" id="ingame-slang-dot"></span>
+            <span id="ingame-slang-text">GAALI: ON</span>
+          </button>
+          <button id="ingame-freq-btn" class="hud-pill-btn" title="Roast Frequency" aria-label="Slang Frequency">
+            <span id="ingame-freq-text">ROAST: MED</span>
+          </button>
+          <button id="ingame-sound-btn" class="hud-pill-btn" title="Satham On/Off" aria-label="Toggle audio">
             <span class="hud-pill-dot" id="ingame-sound-dot"></span>
-            <span id="ingame-sound-text">AUDIO</span>
+            <span id="ingame-sound-text">SATHAM</span>
           </button>
         </div>
       </header>
@@ -176,13 +190,22 @@
         <!-- Left HUD: Player Roster & Orb Tally -->
         <aside class="game-sidebar" aria-label="Players">
           <div class="sidebar-header">
-            <span class="sidebar-label">NODES</span>
+            <span class="sidebar-label">AATAKARANGA</span>
           </div>
           <div id="game-players-list" class="game-players-list"></div>
         </aside>
 
         <!-- Center: Minimal Physical Board Surface -->
         <main class="board-wrapper">
+          <!-- Animated Speech Bubble / Commentary Banner -->
+          <div id="commentary-banner" class="commentary-banner hidden" role="status" aria-live="polite">
+            <div class="commentary-header">
+              <span class="commentary-badge">💀 GAALI VIBE</span>
+              <span class="commentary-category" id="commentary-category">REACTION</span>
+            </div>
+            <p class="commentary-text" id="commentary-text"></p>
+          </div>
+
           <div class="board-frame" id="board-frame">
             <div id="game-board" class="game-board" role="grid" aria-label="Chain Reaction board"></div>
             <!-- Canvas Overlay for Luminous Energy Waves & Trails -->
@@ -205,10 +228,10 @@
         <div class="btn-stack">
           <button id="rematch-btn" class="btn btn-primary">
             <span class="btn-indicator"></span>
-            Vote For Rematch
+            Innoru Match Podalaama? (Rematch)
           </button>
           <button id="leave-btn" class="btn btn-secondary">
-            Exit Chamber
+            Veetukku Kelambu (Exit)
           </button>
         </div>
       </div>

@@ -1126,3 +1126,108 @@ body.reduce-motion .cell.critical::before {
     padding: 0.5rem;
   }
 }
+
+/* ── Commentary Banner (Tamil Slang Chaos Mode) ──────────────── */
+.commentary-banner {
+  position: absolute;
+  top: 1rem;
+  left: 50%;
+  transform: translateX(-50%) translateY(0);
+  width: 90%;
+  max-width: 480px;
+  background: rgba(21, 26, 21, 0.94);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 0.7rem 1rem;
+  z-index: 40;
+  pointer-events: none;
+  box-shadow: 0 14px 40px rgba(0, 0, 0, 0.85);
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  opacity: 1;
+  transition: opacity 0.25s var(--ease-hypnotic), transform 0.25s var(--ease-hypnotic);
+  animation: roastSlideIn 0.3s var(--ease-hypnotic) forwards;
+}
+
+.commentary-banner.hidden {
+  opacity: 0;
+  transform: translateX(-50%) translateY(-12px);
+  pointer-events: none;
+  display: none;
+}
+
+@keyframes roastSlideIn {
+  from {
+    opacity: 0;
+    transform: translateX(-50%) translateY(-18px) scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0) scale(1);
+  }
+}
+
+.commentary-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.commentary-badge {
+  font-family: var(--font-mono);
+  font-size: 0.65rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  color: var(--accent-lime);
+  background: rgba(183, 230, 106, 0.12);
+  border: 1px solid rgba(183, 230, 106, 0.28);
+  border-radius: var(--radius-xs);
+  padding: 0.12rem 0.45rem;
+}
+
+.commentary-category {
+  font-family: var(--font-mono);
+  font-size: 0.65rem;
+  letter-spacing: 0.06em;
+  color: var(--txt-muted);
+  text-transform: uppercase;
+}
+
+.commentary-text {
+  font-size: 0.95rem;
+  font-weight: 600;
+  line-height: 1.35;
+  color: var(--txt-primary);
+  letter-spacing: -0.01em;
+}
+
+/* Major Roasts: Elimination, Victory, Massive Cascades */
+.commentary-banner.major {
+  border-color: rgba(183, 230, 106, 0.5);
+  background: rgba(23, 31, 23, 0.96);
+  box-shadow: 0 0 25px rgba(183, 230, 106, 0.18), 0 16px 45px rgba(0, 0, 0, 0.9);
+  animation: roastMajorPop 0.35s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+
+@keyframes roastMajorPop {
+  0% {
+    opacity: 0;
+    transform: translateX(-50%) translateY(-22px) scale(0.9);
+  }
+  70% {
+    transform: translateX(-50%) translateY(2px) scale(1.03);
+  }
+  100% {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0) scale(1);
+  }
+}
+
+.commentary-banner.major .commentary-text {
+  color: #F4F8EF;
+  font-size: 1.05rem;
+  font-weight: 700;
+}

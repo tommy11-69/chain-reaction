@@ -19,6 +19,8 @@ let fxQueue        = [];
 // Settings
 let audioEnabled   = false;
 let motionReduced  = false;
+let slangEnabled   = true;
+let slangFrequency = 'med'; // 'low' | 'med' | 'high'
 
 // DOM refs
 const $ = id => document.getElementById(id);
@@ -49,8 +51,60 @@ function loadPreferences() {
     ? localStorage.getItem('cr_motion') === 'reduced'
     : sysReduced;
 
+  slangEnabled = localStorage.getItem('cr_slang') !== 'false';
+  slangFrequency = localStorage.getItem('cr_slang_freq') || 'med';
+
   updateAudioUI();
   updateMotionUI();
+  updateSlangUI();
+}
+
+function updateSlangUI() {
+  const dot = $('slang-dot');
+  const label = $('slang-label');
+  const ingameDot = $('ingame-slang-dot');
+  const ingameText = $('ingame-slang-text');
+  const freqLabel = $('freq-label');
+
+  if (slangEnabled) {
+    if (dot) dot.classList.add('active');
+    if (label) label.textContent = 'Gaali: On';
+    if (ingameDot) ingameDot.classList.add('active');
+    if (ingameText) ingameText.textContent = 'GAALI: ON';
+  } else {
+    if (dot) dot.classList.remove('active');
+    if (label) label.textContent = 'Gaali: Off';
+    if (ingameDot) ingameDot.classList.remove('active');
+    if (ingameText) ingameText.textContent = 'GAALI: OFF';
+  }
+
+  const freqMap = { low: 'Konjam', med: 'Med', high: 'Full Attack' };
+  const freqDisplay = freqMap[slangFrequency] || 'Med';
+
+  if (freqLabel) {
+    freqLabel.textContent = `Roast: ${freqDisplay}`;
+  }
+
+  const ingameFreq = $('ingame-freq-text');
+  if (ingameFreq) {
+    ingameFreq.textContent = `ROAST: ${freqDisplay.toUpperCase()}`;
+  }
+}
+
+function toggleSlang() {
+  slangEnabled = !slangEnabled;
+  localStorage.setItem('cr_slang', slangEnabled ? 'true' : 'false');
+  updateSlangUI();
+  showToast(slangEnabled ? 'Gaali Mode On Da! Full Roast Mode 💀' : 'Gaali Mode Muted da!', 'info');
+}
+
+function cycleFrequency() {
+  const next = { low: 'med', med: 'high', high: 'low' };
+  slangFrequency = next[slangFrequency] || 'med';
+  localStorage.setItem('cr_slang_freq', slangFrequency);
+  updateSlangUI();
+  const freqMap = { low: 'Konjam (Only Big Events)', med: 'Medium Roast', high: 'Full Gaali Attack' };
+  showToast(`Roast Level: ${freqMap[slangFrequency]}`, 'info');
 }
 
 function updateAudioUI() {
@@ -61,14 +115,14 @@ function updateAudioUI() {
 
   if (audioEnabled) {
     if (dot) dot.classList.add('active');
-    if (label) label.textContent = 'Sound: On';
+    if (label) label.textContent = 'Satham: On';
     if (ingameDot) ingameDot.classList.add('active');
-    if (ingameText) ingameText.textContent = 'SOUND ON';
+    if (ingameText) ingameText.textContent = 'SATHAM: ON';
   } else {
     if (dot) dot.classList.remove('active');
-    if (label) label.textContent = 'Sound: Off';
+    if (label) label.textContent = 'Satham: Off';
     if (ingameDot) ingameDot.classList.remove('active');
-    if (ingameText) ingameText.textContent = 'MUTED';
+    if (ingameText) ingameText.textContent = 'SATHAM: OFF';
   }
 }
 
@@ -79,11 +133,11 @@ function updateMotionUI() {
   if (motionReduced) {
     document.body.classList.add('reduce-motion');
     if (dot) dot.classList.remove('active');
-    if (label) label.textContent = 'Motion: Low';
+    if (label) label.textContent = 'FX: Konjam';
   } else {
     document.body.classList.remove('reduce-motion');
     if (dot) dot.classList.add('active');
-    if (label) label.textContent = 'Motion: Full';
+    if (label) label.textContent = 'FX: Vera Level';
   }
 }
 
@@ -94,9 +148,9 @@ function toggleAudio() {
   if (audioEnabled) {
     resumeAudioContext();
     playOrbPlace('#B7E66A');
-    showToast('Atmospheric audio enabled', 'info');
+    showToast('Sound on panniyaachu da!', 'info');
   } else {
-    showToast('Audio muted', 'info');
+    showToast('Sound-a off pannitta da!', 'info');
   }
 }
 
@@ -104,7 +158,7 @@ function toggleMotion() {
   motionReduced = !motionReduced;
   localStorage.setItem('cr_motion', motionReduced ? 'reduced' : 'full');
   updateMotionUI();
-  showToast(motionReduced ? 'Reduced motion active' : 'Full motion active', 'info');
+  showToast(motionReduced ? 'FX konjam aakiyachu da' : 'FX vera level-la irukku da!', 'info');
 }
 
 // ─── Procedural Web Audio Synthesis ──────────────────────────────────────────
@@ -237,6 +291,31 @@ function playVictory() {
   });
 }
 
+/** Punchy comedic audio accent for major roasts */
+function playRoastAccent() {
+  if (!audioEnabled) return;
+  const ctx = getAudioContext();
+  if (!ctx) return;
+  resumeAudioContext();
+
+  const now = ctx.currentTime;
+  const osc = ctx.createOscillator();
+  const gain = ctx.createGain();
+
+  osc.type = 'sawtooth';
+  osc.frequency.setValueAtTime(170, now);
+  osc.frequency.exponentialRampToValueAtTime(70, now + 0.12);
+
+  gain.gain.setValueAtTime(0.12, now);
+  gain.gain.exponentialRampToValueAtTime(0.001, now + 0.12);
+
+  osc.connect(gain);
+  gain.connect(ctx.destination);
+
+  osc.start(now);
+  osc.stop(now + 0.125);
+}
+
 function initAudioEngine() {
   // Prime context on first user interaction
   const unlock = () => {
@@ -345,8 +424,8 @@ function initSocket() {
   socket = io({ reconnectionAttempts: 10 });
 
   socket.on('connect',    () => console.log('[ws] connected', socket.id));
-  socket.on('disconnect', () => showToast('Connection interrupted — retrying...', 'warning'));
-  socket.on('reconnect',  () => showToast('Reconnected to grid', 'success'));
+  socket.on('disconnect', () => showToast('Net cut aayiduchu da baadu... Connect aagudhu!', 'warning'));
+  socket.on('reconnect',  () => showToast('Thirumba ulla vandhutta da! Aatam continue aagudhu!', 'success'));
 
   socket.on('room_joined',          onRoomJoined);
   socket.on('room_updated',         onRoomUpdated);
@@ -355,7 +434,19 @@ function initSocket() {
   socket.on('move_rejected',        onMoveRejected);
   socket.on('player_disconnected',  onPlayerDisconnected);
   socket.on('rematch_vote',         onRematchVote);
-  socket.on('error',                data => showToast(data.message || 'Server error', 'error'));
+  socket.on('error',                data => {
+    const errorMap = {
+      'Room is full (max 4 players)': 'Room full aayiduchu da, 4 peru thaan aada mudiyum!',
+      'Game has already started': 'Aatam already start aayiduchu da, velila nillu!',
+      'Name already taken in this room': 'Indha peru already oruthan vachirukaan da, vera peru vai!',
+      'Need at least 2 players to start': 'Aatam start panna innum oruthan venum da baadu (min 2 players)!',
+      'Room not found. Check the code.': 'Appadi oru room-ae illa da, code-a olunga paathu type pannu!',
+      'Game already started': 'Aatam already start aayiduchu da!',
+      'Game is not in progress': 'Aatam innum thodangala da baadu!',
+    };
+    const msg = errorMap[data.message] || data.message || 'Server-la yedho kolaaru da!';
+    showToast(msg, 'error');
+  });
 }
 
 // ─── UI Bindings ─────────────────────────────────────────────────────────────
@@ -364,6 +455,10 @@ function initUI() {
   $('audio-toggle-btn').addEventListener('click', toggleAudio);
   $('motion-toggle-btn').addEventListener('click', toggleMotion);
   $('ingame-sound-btn').addEventListener('click', toggleAudio);
+  $('slang-toggle-btn').addEventListener('click', toggleSlang);
+  $('freq-toggle-btn').addEventListener('click', cycleFrequency);
+  $('ingame-slang-btn').addEventListener('click', toggleSlang);
+  if ($('ingame-freq-btn')) $('ingame-freq-btn').addEventListener('click', cycleFrequency);
 
   // Landing
   $('create-room-btn').addEventListener('click', createRoom);
@@ -411,13 +506,19 @@ function showScreen(name) {
     el.classList.remove('hidden');
     el.classList.add('active');
   }
+
+  // Hide floating global utils when game screen is active to keep in-game topbar perfectly clean
+  const globalUtils = document.querySelector('.global-utils');
+  if (globalUtils) {
+    globalUtils.style.display = (name === 'game') ? 'none' : 'flex';
+  }
 }
 
 // ─── Landing Actions ─────────────────────────────────────────────────────────
 function getPlayerName() {
   const name = $('player-name').value.trim();
   if (!name) {
-    showToast('Identify yourself with an alias', 'error');
+    showToast('Dei baadu, modhalla un pera type pannuda!', 'error');
     $('player-name').focus();
     return null;
   }
@@ -441,7 +542,7 @@ function joinRoom() {
   if (!name) return;
   const code = $('join-code').value.trim().toUpperCase();
   if (code.length !== 6) {
-    showToast('Chamber code requires 6 characters', 'error');
+    showToast('6 letter room code poduda olunga!', 'error');
     return;
   }
   socket.emit('join_room', { roomCode: code, playerName: name });
@@ -456,7 +557,7 @@ function onRoomJoined(data) {
 
   if (reconnected && gameState) {
     onGameStarted({ state: gameState });
-    showToast('Reconnected to session', 'success');
+    showToast('Thirumba ulla vandhutta da! Back to game!', 'success');
     return;
   }
 
@@ -464,8 +565,8 @@ function onRoomJoined(data) {
   setHostControls(host);
   updateLobbyPlayers(players, hostId);
   $('lobby-status').textContent = host
-    ? 'Share the chamber code with 1 to 3 opponents'
-    : 'Awaiting host grid initiation...';
+    ? 'Code-a un pasangalukku anupu da, 2-4 aalu koodanum!'
+    : 'Host payya start pandra varaikkum amaidhiyaa iru da...';
   showScreen('lobby');
 }
 
@@ -504,8 +605,8 @@ function updateLobbyPlayers(players, hostId) {
     li.innerHTML = `
       <span class="player-dot" style="background:${esc(player.color)};box-shadow:0 0 7px ${esc(player.color)}"></span>
       <span>${esc(player.name)}</span>
-      ${player.id === hostId ? '<span class="host-badge">HOST</span>' : ''}
-      ${!player.connected ? '<span class="disconnected-badge">offline</span>' : ''}
+      ${player.id === hostId ? '<span class="host-badge">THALAIVAN</span>' : ''}
+      ${!player.connected ? '<span class="disconnected-badge">OODITAAN (OFFLINE)</span>' : ''}
     `;
     list.appendChild(li);
   });
@@ -515,8 +616,8 @@ function copyRoomCode() {
   const code = myRoomCode || $('lobby-room-code').textContent;
   if (!code || code === '——') return;
   navigator.clipboard.writeText(code)
-    .then(() => showToast(`Code ${code} copied`, 'success'))
-    .catch(() => showToast(`Chamber Code: ${code}`, 'info'));
+    .then(() => showToast(`Room code ${code} copy aayiduchu da, WhatsApp-la thooki podu!`, 'success'))
+    .catch(() => showToast(`Room Code: ${code}`, 'info'));
 }
 
 function startGame() {
@@ -534,6 +635,64 @@ function onGameStarted(data) {
   syncFxCanvas();
 }
 
+// ─── Tamil Slang Commentary System ───────────────────────────────────────────
+let currentCommentaryPriority = 0;
+let commentaryTimer = null;
+let commentaryShowTime = 0;
+
+function handleCommentary(commentary) {
+  if (!slangEnabled || !commentary || !commentary.text) return;
+
+  const p = commentary.priority || 1;
+
+  // Frequency Filtering
+  if (slangFrequency === 'low') {
+    // Low only triggers on major events (waves >= 2, elimination, victory)
+    if (p < 3) return;
+  } else if (slangFrequency === 'med') {
+    // Medium allows p >= 2, and ~40% of ordinary moves (p === 1)
+    if (p === 1 && Math.random() > 0.4) return;
+  } else {
+    // High: shows commentary, but throttles ordinary moves to min 2.2s gap
+    const now = Date.now();
+    if (p === 1 && now - commentaryShowTime < 2200) return;
+  }
+
+  const now = Date.now();
+  // If higher priority message is currently on screen and was displayed recently, keep it
+  if (commentaryTimer && currentCommentaryPriority > p && (now - commentaryShowTime < 2200)) {
+    return;
+  }
+
+  currentCommentaryPriority = p;
+  commentaryShowTime = now;
+
+  const banner = $('commentary-banner');
+  const catEl = $('commentary-category');
+  const textEl = $('commentary-text');
+  if (!banner || !textEl) return;
+
+  if (catEl) catEl.textContent = (commentary.category || 'roast').toUpperCase().replace('_', ' ');
+  textEl.textContent = commentary.text;
+
+  if (commentary.major) {
+    banner.classList.add('major');
+    playRoastAccent();
+  } else {
+    banner.classList.remove('major');
+  }
+
+  banner.classList.remove('hidden');
+
+  clearTimeout(commentaryTimer);
+  const duration = commentary.major ? 4200 : 3200;
+  commentaryTimer = setTimeout(() => {
+    banner.classList.add('hidden');
+    currentCommentaryPriority = 0;
+    commentaryTimer = null;
+  }, duration);
+}
+
 // ─── State Update & Cascade Processing ───────────────────────────────────────
 function onStateUpdate(data) {
   if (data.skippedPlayer) {
@@ -542,6 +701,15 @@ function onStateUpdate(data) {
 
   const waves = data.waves || [];
   const lastMove = data.lastMove;
+
+  // Trigger contextual Tamil Slang Commentary
+  if (data.commentary) {
+    if (waves.length > 0) {
+      setTimeout(() => handleCommentary(data.commentary), 100);
+    } else {
+      handleCommentary(data.commentary);
+    }
+  }
 
   // Single move or cascade
   if (waves.length === 0) {
@@ -702,7 +870,14 @@ function executeCascadeSequence(data, waves) {
 }
 
 function onMoveRejected(data) {
-  showToast(data.reason || 'Placement rejected', 'error');
+  const reasonMap = {
+    'Not your turn': 'Dei avasara koodhi, un turn illa da!',
+    'Cell belongs to another player': 'Adhu vera aaloda cell-u da, anga kaiya vekkadha!',
+    'Game is not in progress': 'Aatam innum thodangala da baadu!',
+    'Cell out of bounds': 'Board-ai thaandi enga pora loosu!',
+  };
+  const msg = reasonMap[data.reason] || data.reason || 'Anga vaikka mudiyadhu da baadu!';
+  showToast(msg, 'error');
 }
 
 function onPlayerDisconnected(data) {
@@ -717,11 +892,11 @@ function onPlayerDisconnected(data) {
     });
     renderPlayerList(currentState);
   }
-  showToast('Player disconnected', 'warning');
+  showToast('Oru payya payandhu ooditaan da (Disconnected)!', 'warning');
 }
 
 function onRematchVote(data) {
-  $('rematch-info').textContent = `${data.votes} / ${data.total} voted for rematch`;
+  $('rematch-info').textContent = `${data.votes} / ${data.total} peru rematch-ku ready aayitaanga!`;
 }
 
 // ─── Rendering ────────────────────────────────────────────────────────────────
@@ -739,7 +914,7 @@ function renderTurnIndicator(state) {
 
   if (status === 'finished') {
     dot.style.background = '';
-    text.textContent = 'Session Concluded';
+    text.textContent = 'Aatam Mudinjiduchu Da!';
     el.className = 'turn-indicator';
     return;
   }
@@ -748,7 +923,7 @@ function renderTurnIndicator(state) {
   const isMe = cur && cur.id === myPlayerId;
 
   dot.style.background = cur ? cur.color : '#E5E9E2';
-  text.textContent = isMe ? 'Your Turn' : (cur ? `${cur.name}'s Turn` : '—');
+  text.textContent = isMe ? 'Un Turn Da! Podu!' : (cur ? `${cur.name} Turn Da! Paathu podra...` : '—');
   el.className = 'turn-indicator' + (isMe ? ' my-turn' : '');
 }
 
@@ -895,14 +1070,14 @@ function showGameOver(state) {
     ann.innerHTML = `
       <div class="winner-color-dot"
            style="background:${esc(winner.color)};box-shadow:0 0 30px ${esc(winner.color)}"></div>
-      <h2 class="winner-title">${esc(winner.name)} Dominates</h2>
+      <h2 class="winner-title">OTHAAA! ${esc(winner.name)} THAAN DA WINNER-U! 👑</h2>
     `;
   } else {
-    ann.innerHTML = '<h2 class="winner-title">Session Concluded</h2>';
+    ann.innerHTML = '<h2 class="winner-title">Aatam Mudinjiduchu Da!</h2>';
   }
 
   $('rematch-btn').disabled    = false;
-  $('rematch-btn').innerHTML   = '<span class="btn-indicator"></span> Vote For Rematch';
+  $('rematch-btn').innerHTML   = '<span class="btn-indicator"></span> Innoru Match Podalaama? (Rematch)';
   $('rematch-info').textContent = '';
   showScreen('gameover');
 }
@@ -910,7 +1085,7 @@ function showGameOver(state) {
 function requestRematch() {
   socket.emit('request_rematch', { roomCode: myRoomCode });
   $('rematch-btn').disabled    = true;
-  $('rematch-btn').textContent = '✓ Voted — Awaiting consensus';
+  $('rematch-btn').textContent = '✓ Vote Potachu — Mathavanunga Podatum...';
 }
 
 // ─── Toast System ─────────────────────────────────────────────────────────────

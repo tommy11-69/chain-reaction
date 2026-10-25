@@ -6,12 +6,14 @@ const http    = require('http');
 const { Server } = require('socket.io');
 
 const RoomManager          = require('./RoomManager');
+const CommentaryEngine     = require('./commentaryEngine');
 const { DEFAULT_ROWS, DEFAULT_COLS } = require('../shared/constants');
 
 const app    = express();
 const server = http.createServer(app);
 const io     = new Server(server, { cors: { origin: '*' } });
 const rooms  = new RoomManager();
+const commentaryEngine = new CommentaryEngine();
 
 // ─── Static files ──────────────────────────────────────────────────────────
 app.use(express.static(path.join(__dirname, '../../public')));
@@ -93,6 +95,11 @@ io.on('connection', socket => {
     const room = getRoom(socket, roomCode);
     if (!room) return socket.emit('move_rejected', { reason: 'Room not found.' });
 
+    const oldState = room.engine ? room.engine.getState() : null;
+    const actingPlayer = oldState
+      ? (oldState.players.find(p => p.id === socket.id) || { name: 'Player' })
+      : { name: 'Player' };
+
     const result = room.placeOrb(socket.id, row, col);
     if (!result.success) return socket.emit('move_rejected', { reason: result.reason });
 
@@ -100,10 +107,19 @@ io.on('connection', socket => {
     if (room.autoSkipTimer) { clearTimeout(room.autoSkipTimer); room.autoSkipTimer = null; }
 
     const state = room.engine.getState();
+    const commentary = commentaryEngine.evaluateMove({
+      playerName: actingPlayer.name,
+      playerId: socket.id,
+      waves: result.waves || [],
+      oldState,
+      newState: state,
+    });
+
     io.to(room.code).emit('state_update', {
       state,
       waves: result.waves || [],
       lastMove: { row, col, playerId: socket.id },
+      commentary,
     });
 
     if (room.status === 'playing') room.scheduleAutoSkip(io);
