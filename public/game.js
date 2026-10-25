@@ -1113,7 +1113,7 @@ function computeCellSize(rows, cols) {
   if (!wrapper) return 48;
   const { width, height } = wrapper.getBoundingClientRect();
   const gap    = 2;
-  const padPx  = 16;
+  const padPx  = (width < 480) ? 8 : 16;
   const avW    = width  - padPx - gap * (cols - 1);
   const avH    = height - padPx - gap * (rows - 1);
   const byW    = Math.floor(avW / cols);

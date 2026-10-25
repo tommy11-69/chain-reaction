@@ -9,6 +9,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;600;700&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="style.css" />
+  <link rel="stylesheet" href="mobile.css" />
 </head>
 <body>
 
@@ -197,15 +198,6 @@
 
         <!-- Center: Minimal Physical Board Surface -->
         <main class="board-wrapper">
-          <!-- Animated Speech Bubble / Commentary Banner -->
-          <div id="commentary-banner" class="commentary-banner hidden" role="status" aria-live="polite">
-            <div class="commentary-header">
-              <span class="commentary-badge">💀 GAALI VIBE</span>
-              <span class="commentary-category" id="commentary-category">REACTION</span>
-            </div>
-            <p class="commentary-text" id="commentary-text"></p>
-          </div>
-
           <div class="board-frame" id="board-frame">
             <div id="game-board" class="game-board" role="grid" aria-label="Chain Reaction board"></div>
             <!-- Canvas Overlay for Luminous Energy Waves & Trails -->
@@ -213,6 +205,15 @@
           </div>
         </main>
 
+      </div>
+
+      <!-- Floating Commentary / Gaali Roast Banner (Never touches or covers board) -->
+      <div id="commentary-banner" class="commentary-banner hidden" role="status" aria-live="polite">
+        <div class="commentary-header">
+          <span class="commentary-badge">💀 GAALI VIBE</span>
+          <span class="commentary-category" id="commentary-category">REACTION</span>
+        </div>
+        <p class="commentary-text" id="commentary-text"></p>
       </div>
     </div>
   </div>

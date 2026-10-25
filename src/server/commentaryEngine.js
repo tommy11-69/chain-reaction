@@ -107,12 +107,12 @@ class CommentaryEngine {
         player: victim,
         attacker: playerName,
         templates: [
-          'AYYAYYOOO! {player} GAME-LENDHU KAALI DA!',
-          'Otha, {player} kathai mudinjiduchu da, orama po!',
+          'AYYAYYOOO! {player} GAME-LENDHU KAALI!',
+          'Otha, {player} kathai mudinjiduchu , orama po!',
           'Dei {player}, un kundi-la thee vachitaan da {attacker}!',
-          'Motha game-la irundhu exit-u {player}! Veetukku kelambu da!',
-          'Ommala, comeback nu nenachom da {player}, aana thooki potutaanga!',
-          'Okkala ozhi, {player}-a oru corner-la pottu aruthutaanga da!',
+          'Motha game-la irundhu exit-u {player}! Veetukku kelambu!',
+          'Ommala, comeback nu nenachan {player}, aana thooki potu othutaanga!',
+          'Okkala ozhi, {player}-a oru corner-la pottu aruthutaanga !',
           'Baadu maari aadi {player} ippo orama ukkaandhu azhudhutu irukkaan!',
           'Dei {player}, un soothu kaali aayiduchu da, {attacker} thookitaan!',
           'Otha {player}, idhukku mela unnala onnum panna mudiyadhu, rest edu da!',
@@ -158,13 +158,13 @@ class CommentaryEngine {
         player: playerName,
         gain: netGain,
         templates: [
-          'Ommala, territory takeover da {player}!',
-          'Dei {player}, avan area-va mothama pudungita da!',
-          'Otha, opponent-ku idhu romba personal aayiduchu da!',
+          'Ommala, territory takeover  {player}!',
+          'Dei {player}, avan area-va mothama pudungita !',
+          'Otha, opponent-ku idhu romba personal aayiduchu !',
           'Dei, avan veetukkulla vandhu soothu adi adikkuran {player}!',
           'Okkala oli, ore move-la avan orbs-a suruttitaane!',
           'Baadu maari wait panni motha cell-ayum thookitaan {player}!',
-          'Otha, opponent empire motham damage da!',
+          'Otha, opponent empire motham damage !',
           'Ennada rowdyism panra {player}, motha area-vum unnodadha?!'
         ]
       });
@@ -196,13 +196,13 @@ class CommentaryEngine {
       major: false,
       player: playerName,
       templates: [
-        'Dei {player}, idhu enna da mokka move-u?!',
-        'Aiyayo, ivanukku game puriyudha illaya da?!',
+        'Dei {player}, idhu enna da pee move-u?!',
+        'Aiyiya, ivanukku game puriyudha illaya ?!',
         'Manda bathram da {player}, adutha move unnodadhu!',
         'Ennada panra {player}, summaa edho click panriya?!',
         'Otha, build-up lam bayangarama irukku, aana aatam mokka!',
         'Dei, oru corner-a pudichitu enna thavam irukkiya {player}?!',
-        'Kaluthae maari move panna adutha round-la sethuruva da!',
+        'bottuh maari move panna adutha round-la sethuruva da!',
         'Otha {player}, paathu aadu da, bayama irukku!',
         'Ennada strategic look-u vidra? Move mattum mokkaya irukku!'
       ]
