@@ -946,10 +946,10 @@ function showScreen(name) {
     el.classList.add('active');
   }
 
-  // Hide floating global utils when game screen is active to keep view clean
-  const globalUtils = document.querySelector('.global-utils');
-  if (globalUtils) {
-    globalUtils.style.display = (name === 'game') ? 'none' : 'flex';
+  // Hide dedicated app header when live game arena is active (arena has its own topbar)
+  const topHeader = $('app-top-header') || document.querySelector('.global-utils');
+  if (topHeader) {
+    topHeader.style.display = (name === 'game') ? 'none' : 'flex';
   }
 }
 

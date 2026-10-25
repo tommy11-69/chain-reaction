@@ -19,21 +19,29 @@
   <!-- Film Grain Overlay -->
   <div class="film-grain" aria-hidden="true"></div>
 
-  <!-- Global Utility Controls (Minimalist Top Bar) -->
-  <nav class="global-utils" aria-label="Settings">
-    <a href="tutorial.html" id="util-tutorial-btn" class="util-btn util-guide" title="Epdi Aadradhu? (Tutorial)" aria-label="Tutorial Guide" style="text-decoration:none;">
-      <span class="util-dot active" style="background:var(--accent-cyan);box-shadow:0 0 6px var(--accent-cyan)"></span>
-      <span id="guide-label">Guide 📖</span>
-    </a>
-    <button id="audio-toggle-btn" class="util-btn" title="Satham On/Off" aria-label="Toggle audio">
-      <span class="util-dot" id="audio-dot"></span>
-      <span id="audio-label">Satham: Off</span>
-    </button>
-    <button id="btn-open-settings" class="util-btn" title="Amaiypu / Settings" aria-label="Open Settings">
-      <span class="util-icon">⚙️</span>
-      <span>Amaiypu</span>
-    </button>
-  </nav>
+  <!-- Dedicated Top Navigation Section (Separate on top of everything) -->
+  <header class="app-top-header" id="app-top-header">
+    <div class="top-header-brand">
+      <div class="header-glyph" aria-hidden="true">
+        <span class="header-glyph-dot"></span>
+      </div>
+      <span class="header-brand-name">CHAIN REACTION</span>
+    </div>
+    <nav class="global-utils" aria-label="Settings">
+      <a href="tutorial.html" id="util-tutorial-btn" class="util-btn util-guide" title="Epdi Aadradhu? (Tutorial)" aria-label="Tutorial Guide" style="text-decoration:none;">
+        <span class="util-dot active" style="background:var(--accent-cyan);box-shadow:0 0 6px var(--accent-cyan)"></span>
+        <span id="guide-label">Guide 📖</span>
+      </a>
+      <button id="audio-toggle-btn" class="util-btn" title="Satham On/Off" aria-label="Toggle audio">
+        <span class="util-dot" id="audio-dot"></span>
+        <span id="audio-label">Satham: Off</span>
+      </button>
+      <button id="btn-open-settings" class="util-btn" title="Amaiypu / Settings" aria-label="Open Settings">
+        <span class="util-icon">⚙️</span>
+        <span>Amaiypu</span>
+      </button>
+    </nav>
+  </header>
 
   <!-- Notification Toast -->
   <div id="toast" class="toast" role="alert" aria-live="assertive"></div>

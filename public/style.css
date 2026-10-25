@@ -96,15 +96,62 @@ html, body {
   background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
 }
 
-/* ── Global Utility Controls (Sound, Motion) ────────────────── */
-.global-utils {
+/* ── Dedicated App Top Header (Separate on top of everything) ── */
+.app-top-header {
   position: fixed;
-  top: 1rem;
-  right: 1.25rem;
-  z-index: 50;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 52px;
+  background: rgba(8, 14, 8, 0.96);
+  border-bottom: 1px solid var(--border);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  z-index: 100;
   display: flex;
   align-items: center;
-  gap: 0.6rem;
+  justify-content: space-between;
+  padding: 0 1.25rem;
+  box-sizing: border-box;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.65);
+}
+
+.top-header-brand {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+}
+
+.header-glyph {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  border: 1.5px solid var(--accent-lime);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.header-glyph-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--accent-lime);
+  box-shadow: 0 0 6px var(--accent-lime);
+}
+
+.header-brand-name {
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  color: var(--txt-primary);
+}
+
+.global-utils {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
 }
 
 .util-btn {
@@ -151,11 +198,13 @@ html, body {
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
+  justify-content: flex-start;
   padding: 1.5rem;
+  padding-top: calc(54px + max(1rem, env(safe-area-inset-top))) !important;
   opacity: 1;
   visibility: visible;
   transition: opacity 0.3s ease, visibility 0.3s ease;
+  box-sizing: border-box;
 }
 
 .screen.hidden {
