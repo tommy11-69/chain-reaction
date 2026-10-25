@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>Chain Reaction — Dark Tactical Cascade</title>
+  <meta name="description" content="A minimal, atmospheric multiplayer strategy game of critical mass and chain reactions." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+  <!-- Hypnotic Organic Background Canvas -->
+  <canvas id="bg-canvas" class="bg-canvas" aria-hidden="true"></canvas>
+
+  <!-- Film Grain Overlay -->
+  <div class="film-grain" aria-hidden="true"></div>
+
+  <!-- Global Utility Controls (Sound, Motion) -->
+  <nav class="global-utils" aria-label="Settings">
+    <button id="audio-toggle-btn" class="util-btn" title="Toggle audio soundscape" aria-label="Toggle audio">
+      <span class="util-dot" id="audio-dot"></span>
+      <span id="audio-label">Sound: Off</span>
+    </button>
+    <button id="motion-toggle-btn" class="util-btn" title="Toggle effects intensity" aria-label="Toggle motion effects">
+      <span class="util-dot active" id="motion-dot"></span>
+      <span id="motion-label">Motion: Full</span>
+    </button>
+  </nav>
+
+  <!-- Notification Toast -->
+  <div id="toast" class="toast" role="alert" aria-live="assertive"></div>
+
+  <!-- ═══════════════════════════════════════════════════════
+       SCREEN: LANDING
+  ════════════════════════════════════════════════════════ -->
+  <div id="screen-landing" class="screen active">
+    <div class="screen-inner landing-inner">
+
+      <header class="branding-area">
+        <div class="brand-glyph" aria-hidden="true">
+          <span class="glyph-core"></span>
+          <span class="glyph-ring"></span>
+        </div>
+        <h1 class="game-title">Chain Reaction</h1>
+        <p class="game-subtitle">tactical mass &middot; 2&ndash;4 players</p>
+      </header>
+
+      <div class="panel main-panel">
+        <div class="form-group">
+          <label for="player-name">Player Alias</label>
+          <input id="player-name" type="text" maxlength="20"
+                 placeholder="Enter callsign..." autocomplete="off" spellcheck="false" />
+        </div>
+
+        <div class="btn-stack">
+          <button id="create-room-btn" class="btn btn-primary">
+            <span class="btn-indicator"></span>
+            Create Chamber
+          </button>
+          <button id="show-join-btn" class="btn btn-secondary">
+            Join Chamber
+          </button>
+        </div>
+
+        <div id="join-section" class="join-section hidden">
+          <div class="form-group">
+            <label for="join-code">Chamber Code</label>
+            <input id="join-code" type="text" maxlength="6"
+                   placeholder="XXXXXX" autocomplete="off"
+                   spellcheck="false" class="code-input" />
+          </div>
+          <button id="join-room-btn" class="btn btn-primary full-width">
+            Enter Chamber
+          </button>
+        </div>
+      </div>
+
+      <footer class="manifesto-hint">
+        <span class="hint-dot"></span>
+        <span>Reach critical mass to trigger cascading release</span>
+      </footer>
+
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════════
+       SCREEN: LOBBY
+  ════════════════════════════════════════════════════════ -->
+  <div id="screen-lobby" class="screen hidden">
+    <div class="screen-inner">
+      <div class="panel lobby-panel">
+
+        <div class="lobby-header">
+          <div>
+            <span class="eyebrow">Chamber</span>
+            <h2 class="section-title">Staging Area</h2>
+          </div>
+          <div class="room-code-block">
+            <span class="room-code-label">Passcode</span>
+            <div class="room-code-row">
+              <span id="lobby-room-code" class="room-code-value">——</span>
+              <button id="copy-code-btn" class="btn-icon" title="Copy chamber code" aria-label="Copy room code">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <rect x="9" y="9" width="13" height="13" rx="2"></rect>
+                  <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                </svg>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div class="players-section">
+          <div class="section-header-row">
+            <span class="section-label">Connected Souls</span>
+            <span id="player-count" class="player-count-badge">0 / 4</span>
+          </div>
+          <ul id="players-list" class="players-list" aria-label="Lobby players"></ul>
+        </div>
+
+        <div id="host-controls" class="host-controls hidden">
+          <div class="form-group">
+            <label for="grid-size-select">Grid Architecture</label>
+            <select id="grid-size-select" class="select-input">
+              <option value="9x6">Standard 9 &times; 6</option>
+              <option value="6x9">Horizontal 6 &times; 9</option>
+              <option value="9x9">Expansive 9 &times; 9</option>
+              <option value="6x6">Compact 6 &times; 6</option>
+            </select>
+          </div>
+          <button id="start-game-btn" class="btn btn-primary full-width" disabled>
+            Initiate Grid
+          </button>
+        </div>
+
+        <p id="lobby-status" class="lobby-status">Waiting for host initiation...</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════════
+       SCREEN: GAME
+  ════════════════════════════════════════════════════════ -->
+  <div id="screen-game" class="screen hidden">
+    <div class="game-layout">
+
+      <!-- Minimal In-Game Top Bar -->
+      <header class="game-topbar">
+        <div class="topbar-left">
+          <span class="topbar-brand">CHAIN REACTION</span>
+          <div class="topbar-room" id="game-room-badge" title="Chamber Code">
+            <span class="topbar-label">ROOM</span>
+            <span id="game-room-code-display" class="topbar-code">——</span>
+          </div>
+        </div>
+
+        <div id="turn-indicator" class="turn-indicator">
+          <span class="turn-pulse-beacon"></span>
+          <span class="turn-dot"></span>
+          <span class="turn-text">—</span>
+        </div>
+
+        <div class="topbar-right">
+          <button id="ingame-sound-btn" class="hud-pill-btn" title="Toggle audio" aria-label="Toggle audio">
+            <span class="hud-pill-dot" id="ingame-sound-dot"></span>
+            <span id="ingame-sound-text">AUDIO</span>
+          </button>
+        </div>
+      </header>
+
+      <!-- Main Game Arena -->
+      <div class="game-body">
+
+        <!-- Left HUD: Player Roster & Orb Tally -->
+        <aside class="game-sidebar" aria-label="Players">
+          <div class="sidebar-header">
+            <span class="sidebar-label">NODES</span>
+          </div>
+          <div id="game-players-list" class="game-players-list"></div>
+        </aside>
+
+        <!-- Center: Minimal Physical Board Surface -->
+        <main class="board-wrapper">
+          <div class="board-frame" id="board-frame">
+            <div id="game-board" class="game-board" role="grid" aria-label="Chain Reaction board"></div>
+            <!-- Canvas Overlay for Luminous Energy Waves & Trails -->
+            <canvas id="fx-canvas" class="fx-canvas" aria-hidden="true"></canvas>
+          </div>
+        </main>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════════
+       SCREEN: GAME OVER
+  ════════════════════════════════════════════════════════ -->
+  <div id="screen-gameover" class="screen hidden">
+    <div class="screen-inner">
+      <div class="panel gameover-panel">
+        <div id="winner-announcement" class="winner-announcement"></div>
+        <p id="rematch-info" class="rematch-info"></p>
+        <div class="btn-stack">
+          <button id="rematch-btn" class="btn btn-primary">
+            <span class="btn-indicator"></span>
+            Vote For Rematch
+          </button>
+          <button id="leave-btn" class="btn btn-secondary">
+            Exit Chamber
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="/socket.io/socket.io.js"></script>
+  <script src="game.js"></script>
+</body>
+</html>

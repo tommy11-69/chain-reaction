@@ -1,0 +1,936 @@
+/* =====================================================================
+   Chain Reaction  ·  game.js
+   Dark Minimalist × Hypnotic Motion × Web Audio Synthesis
+   Server-authoritative state display with cascading energy VFX.
+===================================================================== */
+'use strict';
+
+// ─── App State ────────────────────────────────────────────────────────────────
+let socket;
+let myPlayerId     = null;
+let myRoomCode     = null;
+let isHost         = false;
+let currentState   = null;
+let prevGridFlat   = null;
+let gridSize       = { rows: 9, cols: 6 };
+let isAnimatingFX  = false;
+let fxQueue        = [];
+
+// Settings
+let audioEnabled   = false;
+let motionReduced  = false;
+
+// DOM refs
+const $ = id => document.getElementById(id);
+
+// Orb layouts — center positions as [left%, top%]
+const ORB_CENTERS = [
+  [],
+  [[50, 50]],
+  [[32, 50], [68, 50]],
+  [[50, 27], [26, 73], [74, 73]],
+  [[27, 27], [73, 27], [27, 73], [73, 73]],
+];
+
+// ─── Entry Point ──────────────────────────────────────────────────────────────
+document.addEventListener('DOMContentLoaded', () => {
+  loadPreferences();
+  initAudioEngine();
+  initBackgroundCanvas();
+  initSocket();
+  initUI();
+});
+
+// ─── Preferences ─────────────────────────────────────────────────────────────
+function loadPreferences() {
+  audioEnabled = localStorage.getItem('cr_audio') === 'true';
+  const sysReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  motionReduced = localStorage.getItem('cr_motion') !== null
+    ? localStorage.getItem('cr_motion') === 'reduced'
+    : sysReduced;
+
+  updateAudioUI();
+  updateMotionUI();
+}
+
+function updateAudioUI() {
+  const dot = $('audio-dot');
+  const label = $('audio-label');
+  const ingameDot = $('ingame-sound-dot');
+  const ingameText = $('ingame-sound-text');
+
+  if (audioEnabled) {
+    if (dot) dot.classList.add('active');
+    if (label) label.textContent = 'Sound: On';
+    if (ingameDot) ingameDot.classList.add('active');
+    if (ingameText) ingameText.textContent = 'SOUND ON';
+  } else {
+    if (dot) dot.classList.remove('active');
+    if (label) label.textContent = 'Sound: Off';
+    if (ingameDot) ingameDot.classList.remove('active');
+    if (ingameText) ingameText.textContent = 'MUTED';
+  }
+}
+
+function updateMotionUI() {
+  const dot = $('motion-dot');
+  const label = $('motion-label');
+
+  if (motionReduced) {
+    document.body.classList.add('reduce-motion');
+    if (dot) dot.classList.remove('active');
+    if (label) label.textContent = 'Motion: Low';
+  } else {
+    document.body.classList.remove('reduce-motion');
+    if (dot) dot.classList.add('active');
+    if (label) label.textContent = 'Motion: Full';
+  }
+}
+
+function toggleAudio() {
+  audioEnabled = !audioEnabled;
+  localStorage.setItem('cr_audio', audioEnabled ? 'true' : 'false');
+  updateAudioUI();
+  if (audioEnabled) {
+    resumeAudioContext();
+    playOrbPlace('#B7E66A');
+    showToast('Atmospheric audio enabled', 'info');
+  } else {
+    showToast('Audio muted', 'info');
+  }
+}
+
+function toggleMotion() {
+  motionReduced = !motionReduced;
+  localStorage.setItem('cr_motion', motionReduced ? 'reduced' : 'full');
+  updateMotionUI();
+  showToast(motionReduced ? 'Reduced motion active' : 'Full motion active', 'info');
+}
+
+// ─── Procedural Web Audio Synthesis ──────────────────────────────────────────
+let audioCtx = null;
+
+function getAudioContext() {
+  if (!audioCtx && (window.AudioContext || window.webkitAudioContext)) {
+    const AudioCtor = window.AudioContext || window.webkitAudioContext;
+    audioCtx = new AudioCtor();
+  }
+  return audioCtx;
+}
+
+function resumeAudioContext() {
+  const ctx = getAudioContext();
+  if (ctx && ctx.state === 'suspended') {
+    ctx.resume();
+  }
+}
+
+/** Soft rounded organic droplet pop */
+function playOrbPlace(colorHex) {
+  if (!audioEnabled) return;
+  const ctx = getAudioContext();
+  if (!ctx) return;
+  resumeAudioContext();
+
+  const now = ctx.currentTime;
+  const osc = ctx.createOscillator();
+  const gain = ctx.createGain();
+  const filter = ctx.createBiquadFilter();
+
+  osc.type = 'sine';
+  osc.frequency.setValueAtTime(320, now);
+  osc.frequency.exponentialRampToValueAtTime(140, now + 0.08);
+
+  filter.type = 'lowpass';
+  filter.frequency.setValueAtTime(800, now);
+
+  gain.gain.setValueAtTime(0.2, now);
+  gain.gain.exponentialRampToValueAtTime(0.001, now + 0.08);
+
+  osc.connect(filter);
+  filter.connect(gain);
+  gain.connect(ctx.destination);
+
+  osc.start(now);
+  osc.stop(now + 0.085);
+}
+
+/** Deeper subtle sub thud on cell burst */
+function playCellBurst() {
+  if (!audioEnabled) return;
+  const ctx = getAudioContext();
+  if (!ctx) return;
+  resumeAudioContext();
+
+  const now = ctx.currentTime;
+  const osc = ctx.createOscillator();
+  const gain = ctx.createGain();
+  const filter = ctx.createBiquadFilter();
+
+  osc.type = 'triangle';
+  osc.frequency.setValueAtTime(95, now);
+  osc.frequency.exponentialRampToValueAtTime(35, now + 0.14);
+
+  filter.type = 'lowpass';
+  filter.frequency.setValueAtTime(350, now);
+
+  gain.gain.setValueAtTime(0.35, now);
+  gain.gain.exponentialRampToValueAtTime(0.001, now + 0.14);
+
+  osc.connect(filter);
+  filter.connect(gain);
+  gain.connect(ctx.destination);
+
+  osc.start(now);
+  osc.stop(now + 0.145);
+}
+
+/** Harmonic resonant pulse during cascade wave */
+function playCascadeWave(waveIndex) {
+  if (!audioEnabled) return;
+  const ctx = getAudioContext();
+  if (!ctx) return;
+  resumeAudioContext();
+
+  const now = ctx.currentTime;
+  const osc = ctx.createOscillator();
+  const gain = ctx.createGain();
+
+  // Subtle melodic ascent
+  const scale = [220, 247.5, 277.2, 329.6, 370, 440, 495, 554.4];
+  const freq = scale[waveIndex % scale.length];
+
+  osc.type = 'sine';
+  osc.frequency.setValueAtTime(freq, now);
+  osc.frequency.exponentialRampToValueAtTime(freq * 0.98, now + 0.12);
+
+  gain.gain.setValueAtTime(0.18, now);
+  gain.gain.exponentialRampToValueAtTime(0.001, now + 0.12);
+
+  osc.connect(gain);
+  gain.connect(ctx.destination);
+
+  osc.start(now);
+  osc.stop(now + 0.125);
+}
+
+/** Victory low atmospheric resonance */
+function playVictory() {
+  if (!audioEnabled) return;
+  const ctx = getAudioContext();
+  if (!ctx) return;
+  resumeAudioContext();
+
+  const chords = [110, 164.8, 220, 277.2];
+  const now = ctx.currentTime;
+  chords.forEach(f => {
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.type = 'sine';
+    osc.frequency.setValueAtTime(f, now);
+    gain.gain.setValueAtTime(0.08, now);
+    gain.gain.exponentialRampToValueAtTime(0.0001, now + 1.8);
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+    osc.start(now);
+    osc.stop(now + 1.85);
+  });
+}
+
+function initAudioEngine() {
+  // Prime context on first user interaction
+  const unlock = () => {
+    resumeAudioContext();
+    window.removeEventListener('click', unlock);
+    window.removeEventListener('keydown', unlock);
+  };
+  window.addEventListener('click', unlock);
+  window.addEventListener('keydown', unlock);
+}
+
+// ─── Hypnotic Ambient Background Canvas ───────────────────────────────────────
+let bgCanvas, bgCtx;
+let bgAnimFrame;
+let bgParticles = [];
+
+function initBackgroundCanvas() {
+  bgCanvas = $('bg-canvas');
+  if (!bgCanvas) return;
+  bgCtx = bgCanvas.getContext('2d');
+
+  resizeBgCanvas();
+  window.addEventListener('resize', resizeBgCanvas);
+
+  // Initialize micro-particles
+  bgParticles = [];
+  const count = 22;
+  for (let i = 0; i < count; i++) {
+    bgParticles.push({
+      x: Math.random() * window.innerWidth,
+      y: Math.random() * window.innerHeight,
+      radius: 0.6 + Math.random() * 1.2,
+      speedY: -0.15 - Math.random() * 0.25,
+      driftAngle: Math.random() * Math.PI * 2,
+      opacity: 0.08 + Math.random() * 0.16,
+    });
+  }
+
+  let time = 0;
+  function renderBg() {
+    if (document.hidden || motionReduced) {
+      bgAnimFrame = requestAnimationFrame(renderBg);
+      return;
+    }
+
+    time += 0.004;
+    const w = bgCanvas.width;
+    const h = bgCanvas.height;
+
+    // Clear primary deep black
+    bgCtx.fillStyle = '#090B09';
+    bgCtx.fillRect(0, 0, w, h);
+
+    // Deep organic morphing gradients
+    const cx1 = w * 0.35 + Math.sin(time * 0.7) * (w * 0.15);
+    const cy1 = h * 0.35 + Math.cos(time * 0.5) * (h * 0.15);
+    const grad1 = bgCtx.createRadialGradient(cx1, cy1, 10, cx1, cy1, w * 0.65);
+    grad1.addColorStop(0, 'rgba(19, 28, 19, 0.45)');
+    grad1.addColorStop(0.6, 'rgba(12, 18, 12, 0.15)');
+    grad1.addColorStop(1, 'transparent');
+    bgCtx.fillStyle = grad1;
+    bgCtx.fillRect(0, 0, w, h);
+
+    const cx2 = w * 0.65 + Math.cos(time * 0.6) * (w * 0.18);
+    const cy2 = h * 0.65 + Math.sin(time * 0.8) * (h * 0.18);
+    const grad2 = bgCtx.createRadialGradient(cx2, cy2, 10, cx2, cy2, w * 0.7);
+    grad2.addColorStop(0, 'rgba(16, 24, 16, 0.35)');
+    grad2.addColorStop(0.5, 'rgba(10, 15, 10, 0.12)');
+    grad2.addColorStop(1, 'transparent');
+    bgCtx.fillStyle = grad2;
+    bgCtx.fillRect(0, 0, w, h);
+
+    // Floating micro motes
+    bgCtx.fillStyle = '#B7E66A';
+    for (const p of bgParticles) {
+      p.y += p.speedY;
+      p.driftAngle += 0.015;
+      p.x += Math.sin(p.driftAngle) * 0.3;
+
+      if (p.y < -10) {
+        p.y = h + 10;
+        p.x = Math.random() * w;
+      }
+
+      bgCtx.globalAlpha = p.opacity;
+      bgCtx.beginPath();
+      bgCtx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
+      bgCtx.fill();
+    }
+    bgCtx.globalAlpha = 1.0;
+
+    bgAnimFrame = requestAnimationFrame(renderBg);
+  }
+
+  bgAnimFrame = requestAnimationFrame(renderBg);
+}
+
+function resizeBgCanvas() {
+  if (!bgCanvas) return;
+  bgCanvas.width = window.innerWidth;
+  bgCanvas.height = window.innerHeight;
+}
+
+// ─── Socket.IO Setup ─────────────────────────────────────────────────────────
+function initSocket() {
+  socket = io({ reconnectionAttempts: 10 });
+
+  socket.on('connect',    () => console.log('[ws] connected', socket.id));
+  socket.on('disconnect', () => showToast('Connection interrupted — retrying...', 'warning'));
+  socket.on('reconnect',  () => showToast('Reconnected to grid', 'success'));
+
+  socket.on('room_joined',          onRoomJoined);
+  socket.on('room_updated',         onRoomUpdated);
+  socket.on('game_started',         onGameStarted);
+  socket.on('state_update',         onStateUpdate);
+  socket.on('move_rejected',        onMoveRejected);
+  socket.on('player_disconnected',  onPlayerDisconnected);
+  socket.on('rematch_vote',         onRematchVote);
+  socket.on('error',                data => showToast(data.message || 'Server error', 'error'));
+}
+
+// ─── UI Bindings ─────────────────────────────────────────────────────────────
+function initUI() {
+  // Utility buttons
+  $('audio-toggle-btn').addEventListener('click', toggleAudio);
+  $('motion-toggle-btn').addEventListener('click', toggleMotion);
+  $('ingame-sound-btn').addEventListener('click', toggleAudio);
+
+  // Landing
+  $('create-room-btn').addEventListener('click', createRoom);
+  $('show-join-btn').addEventListener('click', toggleJoinSection);
+  $('join-room-btn').addEventListener('click', joinRoom);
+  $('player-name').addEventListener('keydown', e => { if (e.key === 'Enter') createRoom(); });
+  $('join-code').addEventListener('keydown',   e => { if (e.key === 'Enter') joinRoom(); });
+  $('join-code').addEventListener('input',     e => {
+    e.target.value = e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, '');
+  });
+
+  // Lobby
+  $('copy-code-btn').addEventListener('click', copyRoomCode);
+  $('start-game-btn').addEventListener('click', startGame);
+  $('grid-size-select').addEventListener('change', e => {
+    const [r, c] = e.target.value.split('x').map(Number);
+    gridSize = { rows: r, cols: c };
+  });
+
+  // Board
+  $('game-board').addEventListener('click', onCellClick);
+  $('game-room-badge').addEventListener('click', copyRoomCode);
+
+  // Game over
+  $('rematch-btn').addEventListener('click', requestRematch);
+  $('leave-btn').addEventListener('click', () => location.reload());
+
+  // Window resize -> recalculate cell size & fx canvas
+  window.addEventListener('resize', () => {
+    if (currentState) {
+      renderBoard(currentState);
+      syncFxCanvas();
+    }
+  });
+}
+
+// ─── Screen Transitions ──────────────────────────────────────────────────────
+function showScreen(name) {
+  document.querySelectorAll('.screen').forEach(s => {
+    s.classList.remove('active');
+    s.classList.add('hidden');
+  });
+  const el = $('screen-' + name);
+  if (el) {
+    el.classList.remove('hidden');
+    el.classList.add('active');
+  }
+}
+
+// ─── Landing Actions ─────────────────────────────────────────────────────────
+function getPlayerName() {
+  const name = $('player-name').value.trim();
+  if (!name) {
+    showToast('Identify yourself with an alias', 'error');
+    $('player-name').focus();
+    return null;
+  }
+  return name;
+}
+
+function createRoom() {
+  const name = getPlayerName();
+  if (!name) return;
+  socket.emit('create_room', { playerName: name });
+}
+
+function toggleJoinSection() {
+  const sec = $('join-section');
+  sec.classList.toggle('hidden');
+  if (!sec.classList.contains('hidden')) $('join-code').focus();
+}
+
+function joinRoom() {
+  const name = getPlayerName();
+  if (!name) return;
+  const code = $('join-code').value.trim().toUpperCase();
+  if (code.length !== 6) {
+    showToast('Chamber code requires 6 characters', 'error');
+    return;
+  }
+  socket.emit('join_room', { roomCode: code, playerName: name });
+}
+
+// ─── Lobby Handlers ──────────────────────────────────────────────────────────
+function onRoomJoined(data) {
+  const { roomCode, players, hostId, playerId, isHost: host, reconnected, gameState } = data;
+  myPlayerId = playerId;
+  myRoomCode = roomCode;
+  isHost     = host;
+
+  if (reconnected && gameState) {
+    onGameStarted({ state: gameState });
+    showToast('Reconnected to session', 'success');
+    return;
+  }
+
+  $('lobby-room-code').textContent = roomCode;
+  setHostControls(host);
+  updateLobbyPlayers(players, hostId);
+  $('lobby-status').textContent = host
+    ? 'Share the chamber code with 1 to 3 opponents'
+    : 'Awaiting host grid initiation...';
+  showScreen('lobby');
+}
+
+function onRoomUpdated(data) {
+  const { players, hostId } = data;
+  updateLobbyPlayers(players, hostId);
+  const amHost = hostId === myPlayerId;
+  if (amHost && !isHost) {
+    isHost = true;
+    setHostControls(true);
+  }
+}
+
+function setHostControls(host) {
+  const hc = $('host-controls');
+  if (host) {
+    hc.classList.remove('hidden');
+  } else {
+    hc.classList.add('hidden');
+  }
+}
+
+function updateLobbyPlayers(players, hostId) {
+  const list     = $('players-list');
+  const cnt      = $('player-count');
+  const startBtn = $('start-game-btn');
+  const connected = players.filter(p => p.connected);
+
+  cnt.textContent = `${connected.length} / 4`;
+  if (startBtn) startBtn.disabled = connected.length < 2;
+
+  list.innerHTML = '';
+  players.forEach(player => {
+    const li = document.createElement('li');
+    li.className = 'player-item';
+    li.innerHTML = `
+      <span class="player-dot" style="background:${esc(player.color)};box-shadow:0 0 7px ${esc(player.color)}"></span>
+      <span>${esc(player.name)}</span>
+      ${player.id === hostId ? '<span class="host-badge">HOST</span>' : ''}
+      ${!player.connected ? '<span class="disconnected-badge">offline</span>' : ''}
+    `;
+    list.appendChild(li);
+  });
+}
+
+function copyRoomCode() {
+  const code = myRoomCode || $('lobby-room-code').textContent;
+  if (!code || code === '——') return;
+  navigator.clipboard.writeText(code)
+    .then(() => showToast(`Code ${code} copied`, 'success'))
+    .catch(() => showToast(`Chamber Code: ${code}`, 'info'));
+}
+
+function startGame() {
+  socket.emit('start_game', { roomCode: myRoomCode, rows: gridSize.rows, cols: gridSize.cols });
+}
+
+// ─── Game Started ────────────────────────────────────────────────────────────
+function onGameStarted(data) {
+  currentState  = data.state;
+  prevGridFlat  = null;
+
+  $('game-room-code-display').textContent = myRoomCode;
+  showScreen('game');
+  renderAll(currentState);
+  syncFxCanvas();
+}
+
+// ─── State Update & Cascade Processing ───────────────────────────────────────
+function onStateUpdate(data) {
+  if (data.skippedPlayer) {
+    showToast(`${data.skippedPlayer} turn skipped (disconnected)`, 'warning');
+  }
+
+  const waves = data.waves || [];
+  const lastMove = data.lastMove;
+
+  // Single move or cascade
+  if (waves.length === 0) {
+    if (lastMove) {
+      const p = data.state.players.find(pl => pl.id === lastMove.playerId);
+      playOrbPlace(p ? p.color : '#B7E66A');
+      animateSinglePlacement(lastMove.row, lastMove.col);
+    }
+    applyAuthoritativeState(data.state);
+  } else {
+    // Chain reaction cascade sequence!
+    executeCascadeSequence(data, waves);
+  }
+}
+
+function applyAuthoritativeState(state) {
+  prevGridFlat = currentState ? flatGrid(currentState.grid) : null;
+  currentState = state;
+  renderAll(currentState);
+
+  if (currentState.status === 'finished') {
+    setTimeout(() => {
+      playVictory();
+      showGameOver(currentState);
+    }, 700);
+  }
+}
+
+function animateSinglePlacement(row, col) {
+  const board = $('game-board');
+  if (!board || !currentState) return;
+  const idx = row * currentState.cols + col;
+  const cell = board.children[idx];
+  if (cell) {
+    cell.classList.add('receiving-ripple');
+    setTimeout(() => cell.classList.remove('receiving-ripple'), 360);
+  }
+}
+
+// ─── Hypnotic Cascade Engine (FX Canvas) ──────────────────────────────────────
+function syncFxCanvas() {
+  const frame = $('board-frame');
+  const canvas = $('fx-canvas');
+  if (!frame || !canvas) return;
+  canvas.width = frame.clientWidth;
+  canvas.height = frame.clientHeight;
+}
+
+function executeCascadeSequence(data, waves) {
+  if (motionReduced) {
+    // Immediate clean sync without cascading delay
+    if (waves.length > 0) playCellBurst();
+    applyAuthoritativeState(data.state);
+    return;
+  }
+
+  isAnimatingFX = true;
+  syncFxCanvas();
+  const fxCanvas = $('fx-canvas');
+  const ctx = fxCanvas ? fxCanvas.getContext('2d') : null;
+  const board = $('game-board');
+
+  let currentWaveIdx = 0;
+
+  function runNextWave() {
+    if (currentWaveIdx >= waves.length) {
+      // Cascade ended: clear fx canvas and snap to final authoritative server state
+      if (ctx) ctx.clearRect(0, 0, fxCanvas.width, fxCanvas.height);
+      isAnimatingFX = false;
+      applyAuthoritativeState(data.state);
+      return;
+    }
+
+    const wave = waves[currentWaveIdx];
+    playCellBurst();
+    playCascadeWave(currentWaveIdx);
+
+    // 1. Burst exploding cells & gather trail lines
+    const trails = [];
+    wave.forEach(({ row, col, neighbors }) => {
+      const idx = row * currentState.cols + col;
+      const cell = board.children[idx];
+      if (cell) {
+        cell.classList.add('bursting');
+        setTimeout(() => cell.classList.remove('bursting'), 260);
+
+        const r1 = cell.getBoundingClientRect();
+        const fR = $('board-frame').getBoundingClientRect();
+        const startX = r1.left - fR.left + r1.width / 2;
+        const startY = r1.top - fR.top + r1.height / 2;
+
+        neighbors.forEach(([nr, nc]) => {
+          const nIdx = nr * currentState.cols + nc;
+          const nCell = board.children[nIdx];
+          if (nCell) {
+            const r2 = nCell.getBoundingClientRect();
+            const endX = r2.left - fR.left + r2.width / 2;
+            const endY = r2.top - fR.top + r2.height / 2;
+            trails.push({ startX, startY, endX, endY, targetCell: nCell });
+          }
+        });
+      }
+    });
+
+    // 2. Animate thin energy trails across grid
+    const trailDuration = 140; // ms
+    const startTime = performance.now();
+
+    function drawTrails(now) {
+      const elapsed = now - startTime;
+      const progress = Math.min(1.0, elapsed / trailDuration);
+
+      if (ctx) {
+        ctx.clearRect(0, 0, fxCanvas.width, fxCanvas.height);
+
+        trails.forEach(t => {
+          const curX = t.startX + (t.endX - t.startX) * progress;
+          const curY = t.startY + (t.endY - t.startY) * progress;
+
+          // Luminous thin trail
+          ctx.beginPath();
+          ctx.moveTo(t.startX, t.startY);
+          ctx.lineTo(curX, curY);
+          ctx.strokeStyle = 'rgba(183, 230, 106, 0.55)';
+          ctx.lineWidth = 2;
+          ctx.stroke();
+
+          // Droplet head
+          ctx.beginPath();
+          ctx.arc(curX, curY, 3, 0, Math.PI * 2);
+          ctx.fillStyle = '#B7E66A';
+          ctx.shadowColor = '#B7E66A';
+          ctx.shadowBlur = 8;
+          ctx.fill();
+          ctx.shadowBlur = 0;
+        });
+      }
+
+      if (progress < 1.0) {
+        requestAnimationFrame(drawTrails);
+      } else {
+        // Impact on receiving cells
+        trails.forEach(t => {
+          t.targetCell.classList.add('receiving-ripple');
+          setTimeout(() => t.targetCell.classList.remove('receiving-ripple'), 300);
+        });
+
+        // Delay to next wave
+        currentWaveIdx++;
+        setTimeout(runNextWave, 80);
+      }
+    }
+
+    requestAnimationFrame(drawTrails);
+  }
+
+  runNextWave();
+}
+
+function onMoveRejected(data) {
+  showToast(data.reason || 'Placement rejected', 'error');
+}
+
+function onPlayerDisconnected(data) {
+  const { players, hostId } = data;
+  if (!$('screen-lobby').classList.contains('hidden')) {
+    updateLobbyPlayers(players, hostId);
+  }
+  if (currentState) {
+    currentState.players.forEach(p => {
+      const sp = players.find(pl => pl.id === p.id);
+      if (sp) p.connected = sp.connected;
+    });
+    renderPlayerList(currentState);
+  }
+  showToast('Player disconnected', 'warning');
+}
+
+function onRematchVote(data) {
+  $('rematch-info').textContent = `${data.votes} / ${data.total} voted for rematch`;
+}
+
+// ─── Rendering ────────────────────────────────────────────────────────────────
+function renderAll(state) {
+  renderTurnIndicator(state);
+  renderPlayerList(state);
+  renderBoard(state);
+}
+
+function renderTurnIndicator(state) {
+  const { players, currentPlayerIndex, status } = state;
+  const el   = $('turn-indicator');
+  const dot  = el.querySelector('.turn-dot');
+  const text = el.querySelector('.turn-text');
+
+  if (status === 'finished') {
+    dot.style.background = '';
+    text.textContent = 'Session Concluded';
+    el.className = 'turn-indicator';
+    return;
+  }
+
+  const cur  = players[currentPlayerIndex];
+  const isMe = cur && cur.id === myPlayerId;
+
+  dot.style.background = cur ? cur.color : '#E5E9E2';
+  text.textContent = isMe ? 'Your Turn' : (cur ? `${cur.name}'s Turn` : '—');
+  el.className = 'turn-indicator' + (isMe ? ' my-turn' : '');
+}
+
+function renderPlayerList(state) {
+  const { players, currentPlayerIndex } = state;
+  const list = $('game-players-list');
+  list.innerHTML = '';
+
+  players.forEach((p, i) => {
+    const div = document.createElement('div');
+    div.className = 'game-player-item' +
+      (i === currentPlayerIndex ? ' active-player' : '') +
+      (!p.alive                 ? ' eliminated'    : '');
+
+    div.innerHTML = `
+      <span class="player-dot" style="background:${esc(p.color)};color:${esc(p.color)}"></span>
+      <span class="player-name" title="${esc(p.name)}">${esc(p.name)}</span>
+      <span class="orb-count">${p.alive ? p.orbCount : '✕'}</span>
+    `;
+    list.appendChild(div);
+  });
+}
+
+function renderBoard(state) {
+  const { grid, rows, cols, players, currentPlayerIndex, status } = state;
+  const board  = $('game-board');
+  const total  = rows * cols;
+
+  board.style.gridTemplateColumns = `repeat(${cols}, 1fr)`;
+  const cellPx = computeCellSize(rows, cols);
+
+  // Sync cell count
+  while (board.children.length < total) {
+    const c = document.createElement('div');
+    c.className = 'cell';
+    c.setAttribute('role', 'gridcell');
+    board.appendChild(c);
+  }
+  while (board.children.length > total) board.removeChild(board.lastChild);
+
+  const curPlayer = players[currentPlayerIndex];
+  const isMyTurn  = curPlayer && curPlayer.id === myPlayerId && status === 'playing';
+  const myPlayer  = players.find(p => p.id === myPlayerId);
+
+  let idx = 0;
+  for (let r = 0; r < rows; r++) {
+    for (let c = 0; c < cols; c++) {
+      const cell     = board.children[idx];
+      const cellData = grid[r][c];
+      const owner    = cellData.owner ? players.find(p => p.id === cellData.owner) : null;
+
+      // Set dimensions
+      cell.style.width  = cellPx + 'px';
+      cell.style.height = cellPx + 'px';
+      cell.dataset.row = r;
+      cell.dataset.col = c;
+      cell.dataset.orbs = cellData.orbs;
+
+      // Reset classes
+      cell.className = 'cell';
+      if (owner) {
+        cell.classList.add('owned');
+        cell.style.setProperty('--cell-color', owner.color);
+      } else {
+        cell.style.removeProperty('--cell-color');
+      }
+
+      // Clickable check
+      const canClick = isMyTurn && (cellData.owner === null || cellData.owner === myPlayerId);
+      if (canClick) {
+        cell.classList.add('clickable');
+        if (myPlayer) cell.style.setProperty('--cell-hover-color', myPlayer.color);
+      }
+
+      // Critical mass indicator (one orb away from exploding)
+      const cm = getCM(r, c, rows, cols);
+      if (owner && cellData.orbs === cm - 1) {
+        cell.classList.add('critical');
+      }
+
+      // Accessibility
+      cell.setAttribute('aria-label',
+        owner ? `${owner.name}: ${cellData.orbs} orb${cellData.orbs !== 1 ? 's' : ''}` : 'empty cell');
+
+      // Render Liquid Orbs
+      renderOrbs(cell, cellData.orbs, owner ? owner.color : null);
+      idx++;
+    }
+  }
+}
+
+function renderOrbs(cell, count, color) {
+  cell.querySelectorAll('.orb').forEach(o => o.remove());
+  if (count <= 0 || !color) return;
+
+  const centers = ORB_CENTERS[Math.min(count, 4)];
+  centers.forEach(([lp, tp]) => {
+    const orb = document.createElement('span');
+    orb.className = 'orb';
+    orb.style.left = lp + '%';
+    orb.style.top  = tp + '%';
+    orb.style.setProperty('--orb-color', color);
+    cell.appendChild(orb);
+  });
+}
+
+function computeCellSize(rows, cols) {
+  const wrapper = document.querySelector('.board-wrapper');
+  if (!wrapper) return 48;
+  const { width, height } = wrapper.getBoundingClientRect();
+  const gap    = 2;
+  const padPx  = 16;
+  const avW    = width  - padPx - gap * (cols - 1);
+  const avH    = height - padPx - gap * (rows - 1);
+  const byW    = Math.floor(avW / cols);
+  const byH    = Math.floor(avH / rows);
+  return Math.max(26, Math.min(byW, byH, 68));
+}
+
+function getCM(r, c, rows, cols) {
+  let n = 0;
+  if (r > 0) n++; if (r < rows - 1) n++;
+  if (c > 0) n++; if (c < cols - 1) n++;
+  return n;
+}
+
+// ─── Cell Click ───────────────────────────────────────────────────────────────
+function onCellClick(e) {
+  const cell = e.target.closest('.cell.clickable');
+  if (!cell || isAnimatingFX) return;
+  socket.emit('place_orb', {
+    roomCode: myRoomCode,
+    row: parseInt(cell.dataset.row),
+    col: parseInt(cell.dataset.col),
+  });
+}
+
+// ─── Game Over ────────────────────────────────────────────────────────────────
+function showGameOver(state) {
+  const winner = state.winner;
+  const ann    = $('winner-announcement');
+
+  if (winner) {
+    ann.innerHTML = `
+      <div class="winner-color-dot"
+           style="background:${esc(winner.color)};box-shadow:0 0 30px ${esc(winner.color)}"></div>
+      <h2 class="winner-title">${esc(winner.name)} Dominates</h2>
+    `;
+  } else {
+    ann.innerHTML = '<h2 class="winner-title">Session Concluded</h2>';
+  }
+
+  $('rematch-btn').disabled    = false;
+  $('rematch-btn').innerHTML   = '<span class="btn-indicator"></span> Vote For Rematch';
+  $('rematch-info').textContent = '';
+  showScreen('gameover');
+}
+
+function requestRematch() {
+  socket.emit('request_rematch', { roomCode: myRoomCode });
+  $('rematch-btn').disabled    = true;
+  $('rematch-btn').textContent = '✓ Voted — Awaiting consensus';
+}
+
+// ─── Toast System ─────────────────────────────────────────────────────────────
+let toastTimer = null;
+function showToast(msg, type = 'info') {
+  const el = $('toast');
+  if (!el) return;
+  el.textContent = msg;
+  el.className = `toast toast-${type} visible`;
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => el.classList.remove('visible'), 3000);
+}
+
+// ─── Utilities ────────────────────────────────────────────────────────────────
+function esc(str) {
+  const d = document.createElement('div');
+  d.appendChild(document.createTextNode(String(str)));
+  return d.innerHTML;
+}
+
+function flatGrid(grid) {
+  return grid.flatMap(row => row.map(c => ({ orbs: c.orbs, owner: c.owner })));
+}
