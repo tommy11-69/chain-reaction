@@ -147,7 +147,7 @@ function toggleAudio() {
   updateAudioUI();
   if (audioEnabled) {
     resumeAudioContext();
-    playOrbPlace('#B7E66A');
+    playOrbPlace('#2DFE54');
     showToast('Sound on panniyaachu da!', 'info');
   } else {
     showToast('Sound-a off pannitta da!', 'info');
@@ -327,10 +327,10 @@ function initAudioEngine() {
   window.addEventListener('keydown', unlock);
 }
 
-// ─── Hypnotic Ambient Background Canvas ───────────────────────────────────────
+// ─── Hypnotic Ambient Weed Vapor & Trichome Canvas ────────────────────────────
 let bgCanvas, bgCtx;
 let bgAnimFrame;
-let bgParticles = [];
+let bgMotes = [];
 
 function initBackgroundCanvas() {
   bgCanvas = $('bg-canvas');
@@ -340,17 +340,19 @@ function initBackgroundCanvas() {
   resizeBgCanvas();
   window.addEventListener('resize', resizeBgCanvas);
 
-  // Initialize micro-particles
-  bgParticles = [];
-  const count = 22;
+  // Initialize floating luminous cannabinoid / trichome motes
+  bgMotes = [];
+  const count = 30;
   for (let i = 0; i < count; i++) {
-    bgParticles.push({
+    bgMotes.push({
       x: Math.random() * window.innerWidth,
       y: Math.random() * window.innerHeight,
-      radius: 0.6 + Math.random() * 1.2,
-      speedY: -0.15 - Math.random() * 0.25,
+      radius: 0.8 + Math.random() * 1.8,
+      speedY: -0.18 - Math.random() * 0.32,
       driftAngle: Math.random() * Math.PI * 2,
-      opacity: 0.08 + Math.random() * 0.16,
+      driftSpeed: 0.012 + Math.random() * 0.016,
+      opacity: 0.12 + Math.random() * 0.28,
+      hue: Math.random() > 0.45 ? '#2DFE54' : (Math.random() > 0.5 ? '#00F5FF' : '#B537F2')
     });
   }
 
@@ -361,50 +363,65 @@ function initBackgroundCanvas() {
       return;
     }
 
-    time += 0.004;
+    time += 0.005;
     const w = bgCanvas.width;
     const h = bgCanvas.height;
 
-    // Clear primary deep black
-    bgCtx.fillStyle = '#090B09';
+    // Pitch cosmic resin black background
+    bgCtx.fillStyle = '#050805';
     bgCtx.fillRect(0, 0, w, h);
 
-    // Deep organic morphing gradients
-    const cx1 = w * 0.35 + Math.sin(time * 0.7) * (w * 0.15);
-    const cy1 = h * 0.35 + Math.cos(time * 0.5) * (h * 0.15);
-    const grad1 = bgCtx.createRadialGradient(cx1, cy1, 10, cx1, cy1, w * 0.65);
-    grad1.addColorStop(0, 'rgba(19, 28, 19, 0.45)');
-    grad1.addColorStop(0.6, 'rgba(12, 18, 12, 0.15)');
+    // Dynamic swirling weed smoke nebula / plasma nodes
+    // Node 1: Cannabis Emerald Smoke Plume
+    const cx1 = w * 0.32 + Math.sin(time * 0.6) * (w * 0.22);
+    const cy1 = h * 0.38 + Math.cos(time * 0.45) * (h * 0.2);
+    const grad1 = bgCtx.createRadialGradient(cx1, cy1, 15, cx1, cy1, w * 0.7);
+    grad1.addColorStop(0, 'rgba(45, 254, 84, 0.18)');
+    grad1.addColorStop(0.4, 'rgba(20, 110, 40, 0.08)');
     grad1.addColorStop(1, 'transparent');
     bgCtx.fillStyle = grad1;
     bgCtx.fillRect(0, 0, w, h);
 
-    const cx2 = w * 0.65 + Math.cos(time * 0.6) * (w * 0.18);
-    const cy2 = h * 0.65 + Math.sin(time * 0.8) * (h * 0.18);
-    const grad2 = bgCtx.createRadialGradient(cx2, cy2, 10, cx2, cy2, w * 0.7);
-    grad2.addColorStop(0, 'rgba(16, 24, 16, 0.35)');
-    grad2.addColorStop(0.5, 'rgba(10, 15, 10, 0.12)');
+    // Node 2: Purple Haze & Ultraviolet Vapor
+    const cx2 = w * 0.7 + Math.cos(time * 0.55) * (w * 0.24);
+    const cy2 = h * 0.62 + Math.sin(time * 0.7) * (h * 0.22);
+    const grad2 = bgCtx.createRadialGradient(cx2, cy2, 15, cx2, cy2, w * 0.72);
+    grad2.addColorStop(0, 'rgba(181, 55, 242, 0.15)');
+    grad2.addColorStop(0.5, 'rgba(90, 20, 130, 0.06)');
     grad2.addColorStop(1, 'transparent');
     bgCtx.fillStyle = grad2;
     bgCtx.fillRect(0, 0, w, h);
 
-    // Floating micro motes
-    bgCtx.fillStyle = '#B7E66A';
-    for (const p of bgParticles) {
-      p.y += p.speedY;
-      p.driftAngle += 0.015;
-      p.x += Math.sin(p.driftAngle) * 0.3;
+    // Node 3: Electric Aqua Psychedelic Core
+    const cx3 = w * 0.5 + Math.sin(time * 0.8) * (w * 0.18);
+    const cy3 = h * 0.5 + Math.cos(time * 0.65) * (h * 0.16);
+    const grad3 = bgCtx.createRadialGradient(cx3, cy3, 10, cx3, cy3, w * 0.55);
+    grad3.addColorStop(0, 'rgba(0, 245, 255, 0.12)');
+    grad3.addColorStop(0.45, 'rgba(10, 60, 90, 0.04)');
+    grad3.addColorStop(1, 'transparent');
+    bgCtx.fillStyle = grad3;
+    bgCtx.fillRect(0, 0, w, h);
 
-      if (p.y < -10) {
-        p.y = h + 10;
+    // Floating luminous trichome / resin motes with soft sinusoidal drift
+    for (const p of bgMotes) {
+      p.y += p.speedY;
+      p.driftAngle += p.driftSpeed;
+      p.x += Math.sin(p.driftAngle) * 0.45;
+
+      if (p.y < -15) {
+        p.y = h + 15;
         p.x = Math.random() * w;
       }
 
       bgCtx.globalAlpha = p.opacity;
+      bgCtx.fillStyle = p.hue;
+      bgCtx.shadowColor = p.hue;
+      bgCtx.shadowBlur = 6;
       bgCtx.beginPath();
       bgCtx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
       bgCtx.fill();
     }
+    bgCtx.shadowBlur = 0;
     bgCtx.globalAlpha = 1.0;
 
     bgAnimFrame = requestAnimationFrame(renderBg);
@@ -605,7 +622,7 @@ function updateLobbyPlayers(players, hostId) {
     li.innerHTML = `
       <span class="player-dot" style="background:${esc(player.color)};box-shadow:0 0 7px ${esc(player.color)}"></span>
       <span>${esc(player.name)}</span>
-      ${player.id === hostId ? '<span class="host-badge">THALAIVAN</span>' : ''}
+      ${player.id === hostId ? '<span class="host-badge">Periya Poolan</span>' : ''}
       ${!player.connected ? '<span class="disconnected-badge">OODITAAN (OFFLINE)</span>' : ''}
     `;
     list.appendChild(li);
@@ -715,7 +732,7 @@ function onStateUpdate(data) {
   if (waves.length === 0) {
     if (lastMove) {
       const p = data.state.players.find(pl => pl.id === lastMove.playerId);
-      playOrbPlace(p ? p.color : '#B7E66A');
+      playOrbPlace(p ? p.color : '#2DFE54');
       animateSinglePlacement(lastMove.row, lastMove.col);
     }
     applyAuthoritativeState(data.state);
@@ -774,6 +791,10 @@ function executeCascadeSequence(data, waves) {
 
   let currentWaveIdx = 0;
 
+  // Determine bursting player color
+  const burstPlayer = data.state.players.find(p => p.id === (data.lastMove ? data.lastMove.playerId : null));
+  const burstColor = burstPlayer ? burstPlayer.color : '#2DFE54';
+
   function runNextWave() {
     if (currentWaveIdx >= waves.length) {
       // Cascade ended: clear fx canvas and snap to final authoritative server state
@@ -787,8 +808,11 @@ function executeCascadeSequence(data, waves) {
     playCellBurst();
     playCascadeWave(currentWaveIdx);
 
-    // 1. Burst exploding cells & gather trail lines
+    // 1. Burst exploding cells, spawn shockwaves & gather trail vectors
     const trails = [];
+    const shockwaves = [];
+    const sparks = [];
+
     wave.forEach(({ row, col, neighbors }) => {
       const idx = row * currentState.cols + col;
       const cell = board.children[idx];
@@ -800,6 +824,22 @@ function executeCascadeSequence(data, waves) {
         const fR = $('board-frame').getBoundingClientRect();
         const startX = r1.left - fR.left + r1.width / 2;
         const startY = r1.top - fR.top + r1.height / 2;
+
+        shockwaves.push({ x: startX, y: startY, color: burstColor });
+
+        // Spawn 6 sparks per exploding cell
+        for (let i = 0; i < 6; i++) {
+          const ang = Math.random() * Math.PI * 2;
+          const spd = 1.0 + Math.random() * 2.8;
+          sparks.push({
+            x: startX,
+            y: startY,
+            vx: Math.cos(ang) * spd,
+            vy: Math.sin(ang) * spd,
+            color: burstColor,
+            size: 1.5 + Math.random() * 2
+          });
+        }
 
         neighbors.forEach(([nr, nc]) => {
           const nIdx = nr * currentState.cols + nc;
@@ -814,8 +854,8 @@ function executeCascadeSequence(data, waves) {
       }
     });
 
-    // 2. Animate thin energy trails across grid
-    const trailDuration = 140; // ms
+    // 2. Animate psychedelic plasma trails, shockwaves & sparks
+    const trailDuration = 150; // ms
     const startTime = performance.now();
 
     function drawTrails(now) {
@@ -825,27 +865,56 @@ function executeCascadeSequence(data, waves) {
       if (ctx) {
         ctx.clearRect(0, 0, fxCanvas.width, fxCanvas.height);
 
+        // Draw expanding neon shockwave rings
+        shockwaves.forEach(sw => {
+          ctx.beginPath();
+          ctx.arc(sw.x, sw.y, 4 + progress * 26, 0, Math.PI * 2);
+          ctx.strokeStyle = sw.color;
+          ctx.lineWidth = Math.max(1, (1 - progress) * 3);
+          ctx.globalAlpha = (1 - progress) * 0.85;
+          ctx.shadowColor = sw.color;
+          ctx.shadowBlur = 10;
+          ctx.stroke();
+        });
+        ctx.globalAlpha = 1.0;
+
+        // Draw glowing plasma beams
         trails.forEach(t => {
           const curX = t.startX + (t.endX - t.startX) * progress;
           const curY = t.startY + (t.endY - t.startY) * progress;
 
-          // Luminous thin trail
+          // Glowing plasma beam
           ctx.beginPath();
           ctx.moveTo(t.startX, t.startY);
           ctx.lineTo(curX, curY);
-          ctx.strokeStyle = 'rgba(183, 230, 106, 0.55)';
-          ctx.lineWidth = 2;
+          ctx.strokeStyle = burstColor;
+          ctx.lineWidth = 3;
+          ctx.shadowColor = burstColor;
+          ctx.shadowBlur = 10;
           ctx.stroke();
 
-          // Droplet head
+          // High-voltage droplet head
           ctx.beginPath();
-          ctx.arc(curX, curY, 3, 0, Math.PI * 2);
-          ctx.fillStyle = '#B7E66A';
-          ctx.shadowColor = '#B7E66A';
+          ctx.arc(curX, curY, 4, 0, Math.PI * 2);
+          ctx.fillStyle = '#FFFFFF';
+          ctx.shadowColor = burstColor;
+          ctx.shadowBlur = 14;
+          ctx.fill();
+        });
+
+        // Draw scattering fluorescent sparks
+        sparks.forEach(s => {
+          ctx.beginPath();
+          const sx = s.x + s.vx * progress * 14;
+          const sy = s.y + s.vy * progress * 14;
+          ctx.arc(sx, sy, s.size * (1 - progress * 0.6), 0, Math.PI * 2);
+          ctx.fillStyle = s.color;
+          ctx.shadowColor = s.color;
           ctx.shadowBlur = 8;
           ctx.fill();
-          ctx.shadowBlur = 0;
         });
+
+        ctx.shadowBlur = 0;
       }
 
       if (progress < 1.0) {
@@ -911,20 +980,26 @@ function renderTurnIndicator(state) {
   const el   = $('turn-indicator');
   const dot  = el.querySelector('.turn-dot');
   const text = el.querySelector('.turn-text');
+  const frame = $('board-frame');
 
   if (status === 'finished') {
     dot.style.background = '';
     text.textContent = 'Aatam Mudinjiduchu Da!';
     el.className = 'turn-indicator';
+    if (frame) frame.style.removeProperty('--current-turn-color');
     return;
   }
 
   const cur  = players[currentPlayerIndex];
   const isMe = cur && cur.id === myPlayerId;
 
-  dot.style.background = cur ? cur.color : '#E5E9E2';
-  text.textContent = isMe ? 'Un Turn Da! Podu!' : (cur ? `${cur.name} Turn Da! Paathu podra...` : '—');
+  dot.style.background = cur ? cur.color : '#F0FDF4';
+  text.textContent = isMe ? 'Un Turn Dha! Podu!' : (cur ? `${cur.name} Turn ! Thailee ennamo pandran...` : '—');
   el.className = 'turn-indicator' + (isMe ? ' my-turn' : '');
+
+  if (frame && cur) {
+    frame.style.setProperty('--current-turn-color', cur.color);
+  }
 }
 
 function renderPlayerList(state) {
@@ -1008,7 +1083,7 @@ function renderBoard(state) {
       cell.setAttribute('aria-label',
         owner ? `${owner.name}: ${cellData.orbs} orb${cellData.orbs !== 1 ? 's' : ''}` : 'empty cell');
 
-      // Render Liquid Orbs
+      // Render 3D Molecular Cluster Orbs
       renderOrbs(cell, cellData.orbs, owner ? owner.color : null);
       idx++;
     }
@@ -1016,18 +1091,21 @@ function renderBoard(state) {
 }
 
 function renderOrbs(cell, count, color) {
-  cell.querySelectorAll('.orb').forEach(o => o.remove());
+  cell.querySelectorAll('.orb-cluster, .orb').forEach(o => o.remove());
   if (count <= 0 || !color) return;
 
-  const centers = ORB_CENTERS[Math.min(count, 4)];
-  centers.forEach(([lp, tp]) => {
+  const clusterCount = Math.min(count, 4);
+  const cluster = document.createElement('div');
+  cluster.className = `orb-cluster cluster-${clusterCount}`;
+
+  for (let i = 0; i < clusterCount; i++) {
     const orb = document.createElement('span');
     orb.className = 'orb';
-    orb.style.left = lp + '%';
-    orb.style.top  = tp + '%';
     orb.style.setProperty('--orb-color', color);
-    cell.appendChild(orb);
-  });
+    cluster.appendChild(orb);
+  }
+
+  cell.appendChild(cluster);
 }
 
 function computeCellSize(rows, cols) {

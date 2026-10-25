@@ -15,27 +15,30 @@
 
 /* ── Typography & Variables ─────────────────────────────────── */
 :root {
-  --bg-primary:    #090B09;
-  --bg-secondary:  #101410;
-  --surface:       #151A15;
-  --surface-hover: #1A211A;
-  --surface-alt:   #121612;
-  --border:        #272E27;
-  --border-subtle: #1D231D;
-  --border-focus:  #384438;
+  --bg-primary:    #050805;
+  --bg-secondary:  #0A0F0A;
+  --surface:       #101710;
+  --surface-hover: #172417;
+  --surface-alt:   #0C130C;
+  --border:        #1E2C1E;
+  --border-subtle: #152215;
+  --border-focus:  #2DFE54;
 
-  --txt-primary:   #E5E9E2;
-  --txt-secondary: #929A90;
-  --txt-muted:     #525A50;
+  --txt-primary:   #F0FDF4;
+  --txt-secondary: #9DB49D;
+  --txt-muted:     #526852;
 
-  --accent-lime:   #B7E66A;
-  --accent-sage:   #71866A;
+  --accent-lime:   #2DFE54; /* Cannabis Electric Green */
+  --accent-purple: #B537F2; /* Purple Haze */
+  --accent-magenta:#FF007F; /* Acid Magenta */
+  --accent-cyan:   #00F5FF; /* Electric Aqua */
+  --accent-amber:  #FFB703; /* Solar Dab Amber */
 
-  /* Coordinated Muted Player Tints */
-  --p1: #B7E66A; /* Acid Lime */
-  --p2: #6EA4BF; /* Slate Cyan */
-  --p3: #D4A373; /* Muted Amber */
-  --p4: #A48CB4; /* Smoky Mauve */
+  /* High-Voltage Trippy Player Tints */
+  --p1: #2DFE54; /* Cannabis Electric Green */
+  --p2: #FF007F; /* Acid Magenta */
+  --p3: #00F5FF; /* Electric Cyan */
+  --p4: #FFB703; /* Solar Dab Amber */
 
   --font-sans: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   --font-mono: 'JetBrains Mono', monospace;
@@ -350,20 +353,23 @@ select.select-input option {
 
 .btn-primary {
   background: var(--accent-lime);
-  color: #090B09;
+  color: #050805;
+  font-weight: 700;
+  box-shadow: 0 0 18px rgba(45, 254, 84, 0.35);
 }
 
 .btn-primary:not(:disabled):hover {
-  background: #C4F078;
-  box-shadow: 0 0 16px rgba(183, 230, 106, 0.25);
+  background: #48FF6C;
+  box-shadow: 0 0 26px rgba(45, 254, 84, 0.65), 0 0 35px rgba(0, 245, 255, 0.3);
+  transform: translateY(-1px);
 }
 
 .btn-indicator {
   width: 6px;
   height: 6px;
   border-radius: 50%;
-  background: #090B09;
-  opacity: 0.6;
+  background: #050805;
+  opacity: 0.75;
 }
 
 .btn-secondary {
@@ -374,7 +380,9 @@ select.select-input option {
 
 .btn-secondary:not(:disabled):hover {
   background: var(--surface-hover);
-  border-color: var(--border-focus);
+  border-color: var(--accent-lime);
+  box-shadow: 0 0 14px rgba(45, 254, 84, 0.2);
+  color: #FFF;
 }
 
 .btn-icon {
@@ -833,18 +841,21 @@ select.select-input option {
 
 .board-frame {
   position: relative;
-  background: #0B0E0B;
-  border: 1px solid var(--border);
+  background: #080D08;
+  border: 2px solid color-mix(in srgb, var(--current-turn-color, var(--accent-lime)) 45%, #152215);
   border-radius: var(--radius-sm);
   padding: 3px;
-  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.85);
+  box-shadow:
+    0 0 30px color-mix(in srgb, var(--current-turn-color, var(--accent-lime)) 22%, transparent),
+    0 15px 50px rgba(0, 0, 0, 0.95);
   display: inline-block;
+  transition: border-color 0.4s ease, box-shadow 0.4s ease;
 }
 
 .game-board {
   display: grid;
   gap: 2px;
-  background: #0B0E0B;
+  background: #060A06;
 }
 
 /* FX Canvas overlay directly on top of board */
@@ -860,8 +871,8 @@ select.select-input option {
 /* ── Cells ───────────────────────────────────────────────────── */
 .cell {
   position: relative;
-  background: #131713;
-  border: 1px solid #1D241D;
+  background: #0D150D;
+  border: 1px solid #162416;
   border-radius: var(--radius-xs);
   cursor: default;
   overflow: visible;
@@ -873,8 +884,9 @@ select.select-input option {
 }
 
 .cell.clickable:hover {
-  background: #1B231B;
-  border-color: #2D392D;
+  background: #142214;
+  border-color: color-mix(in srgb, var(--cell-hover-color, var(--accent-lime)) 40%, #203520);
+  box-shadow: inset 0 0 12px color-mix(in srgb, var(--cell-hover-color, var(--accent-lime)) 15%, transparent);
 }
 
 .cell.clickable:hover::after {
@@ -882,41 +894,48 @@ select.select-input option {
   position: absolute;
   top: 50%;
   left: 50%;
-  width: 6px;
-  height: 6px;
+  width: 7px;
+  height: 7px;
   border-radius: 50%;
   background: var(--cell-hover-color, var(--accent-lime));
-  opacity: 0.35;
+  box-shadow: 0 0 8px var(--cell-hover-color, var(--accent-lime));
+  opacity: 0.55;
   transform: translate(-50%, -50%);
   pointer-events: none;
   animation: hoverDotPulse 1.2s ease-in-out infinite;
 }
 
 @keyframes hoverDotPulse {
-  0%, 100% { transform: translate(-50%, -50%) scale(0.9); opacity: 0.25; }
-  50% { transform: translate(-50%, -50%) scale(1.3); opacity: 0.5; }
+  0%, 100% { transform: translate(-50%, -50%) scale(0.9); opacity: 0.35; }
+  50% { transform: translate(-50%, -50%) scale(1.3); opacity: 0.75; }
 }
 
 .cell.owned {
-  background: color-mix(in srgb, var(--cell-color) 7%, #131713);
-  border-color: color-mix(in srgb, var(--cell-color) 22%, #1D241D);
+  background: color-mix(in srgb, var(--cell-color) 8%, #0D150D);
+  border-color: color-mix(in srgb, var(--cell-color) 28%, #162416);
 }
 
 /* Hypnotic Critical Mass Indicator */
+.cell.critical {
+  border-color: color-mix(in srgb, var(--cell-color) 65%, #2DFE54);
+}
+
 .cell.critical::before {
   content: '';
   position: absolute;
-  inset: 0;
+  inset: -1px;
   border-radius: var(--radius-xs);
-  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--cell-color) 50%, transparent);
-  animation: criticalPulse 2.4s ease-in-out infinite;
+  box-shadow:
+    inset 0 0 10px color-mix(in srgb, var(--cell-color) 50%, transparent),
+    0 0 14px color-mix(in srgb, var(--cell-color) 40%, transparent);
+  animation: criticalGlowPulse 1.1s ease-in-out infinite alternate;
   pointer-events: none;
   z-index: 3;
 }
 
-@keyframes criticalPulse {
-  0%, 100% { opacity: 0.3; }
-  50% { opacity: 0.9; }
+@keyframes criticalGlowPulse {
+  from { opacity: 0.35; transform: scale(0.98); }
+  to   { opacity: 1.0; transform: scale(1.02); }
 }
 
 /* Exploding / Cascade reaction wave on cell */
@@ -926,7 +945,7 @@ select.select-input option {
 
 @keyframes cellBurst {
   0%   { transform: scale(1); filter: brightness(1); }
-  35%  { transform: scale(0.75); filter: brightness(1.7); }
+  35%  { transform: scale(0.72); filter: brightness(2); }
   100% { transform: scale(1); filter: brightness(1); }
 }
 
@@ -936,52 +955,143 @@ select.select-input option {
 
 @keyframes cellReceiveRipple {
   0%   { transform: scale(1); }
-  40%  { transform: scale(1.12); filter: brightness(1.4); }
+  40%  { transform: scale(1.14); filter: brightness(1.5); }
   100% { transform: scale(1); filter: brightness(1); }
 }
 
-/* ── Orbs: Liquid Droplets Suspended in Darkness ────────────── */
+/* ── 3D Volumetric Molecular Cluster Engine ────────────────── */
+.orb-cluster {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+  z-index: 2;
+  transform-origin: center center;
+}
+
+/* 1 Orb: Centered single 3D sphere */
+.orb-cluster.cluster-1 .orb {
+  width: 48%;
+  height: 48%;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  animation: orbPulseGentle 3s ease-in-out infinite;
+}
+
+/* 2 Orbs: Bonded diatomic dumbbell pair touching side-by-side */
+.orb-cluster.cluster-2 {
+  animation: clusterRotate 4.2s linear infinite;
+}
+.orb-cluster.cluster-2 .orb {
+  width: 42%;
+  height: 42%;
+}
+.orb-cluster.cluster-2 .orb:nth-child(1) {
+  top: 50%;
+  left: calc(50% - 18%);
+  transform: translate(-50%, -50%);
+}
+.orb-cluster.cluster-2 .orb:nth-child(2) {
+  top: 50%;
+  left: calc(50% + 18%);
+  transform: translate(-50%, -50%);
+}
+
+/* 3 Orbs: Triatomic equilateral triangular cluster touching tightly */
+.orb-cluster.cluster-3 {
+  animation: clusterRotate 3.6s linear infinite;
+}
+.orb-cluster.cluster-3 .orb {
+  width: 38%;
+  height: 38%;
+}
+.orb-cluster.cluster-3 .orb:nth-child(1) {
+  top: calc(50% - 17%);
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+.orb-cluster.cluster-3 .orb:nth-child(2) {
+  top: calc(50% + 14%);
+  left: calc(50% - 17%);
+  transform: translate(-50%, -50%);
+}
+.orb-cluster.cluster-3 .orb:nth-child(3) {
+  top: calc(50% + 14%);
+  left: calc(50% + 17%);
+  transform: translate(-50%, -50%);
+}
+
+/* 4 Orbs: Diamond / tetrahedral quad cluster */
+.orb-cluster.cluster-4 {
+  animation: clusterRotate 2.8s linear infinite;
+}
+.orb-cluster.cluster-4 .orb {
+  width: 35%;
+  height: 35%;
+}
+.orb-cluster.cluster-4 .orb:nth-child(1) {
+  top: calc(50% - 17%);
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+.orb-cluster.cluster-4 .orb:nth-child(2) {
+  top: calc(50% + 17%);
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+.orb-cluster.cluster-4 .orb:nth-child(3) {
+  top: 50%;
+  left: calc(50% - 17%);
+  transform: translate(-50%, -50%);
+}
+.orb-cluster.cluster-4 .orb:nth-child(4) {
+  top: 50%;
+  left: calc(50% + 17%);
+  transform: translate(-50%, -50%);
+}
+
+/* Excited hyper-spin and jitter vibration at critical mass! */
+.cell.critical .orb-cluster {
+  animation: clusterRotate 0.82s linear infinite, clusterJitter 0.12s ease-in-out infinite !important;
+}
+
+@keyframes clusterRotate {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+
+@keyframes clusterJitter {
+  0%, 100% { filter: drop-shadow(0 0 6px var(--orb-color)); }
+  50%      { filter: drop-shadow(0 0 16px var(--orb-color)) brightness(1.25); }
+}
+
+@keyframes orbPulseGentle {
+  0%, 100% { transform: translate(-50%, -50%) scale(0.96); }
+  50%      { transform: translate(-50%, -50%) scale(1.04); }
+}
+
+body.reduce-motion .orb-cluster {
+  animation: none !important;
+}
+
+/* Volumetric 3D Sphere styling */
 .orb {
   position: absolute;
-  width: 34%;
-  height: 34%;
   border-radius: 50%;
-  transform: translate(-50%, -50%);
-  background:
-    radial-gradient(circle at 32% 28%, rgba(255, 255, 255, 0.85) 0%, rgba(255, 255, 255, 0.2) 20%, transparent 45%),
-    radial-gradient(circle at 50% 50%, var(--orb-color) 0%, color-mix(in srgb, var(--orb-color) 55%, #000) 100%);
-  box-shadow:
-    0 2px 6px rgba(0, 0, 0, 0.75),
-    0 0 8px color-mix(in srgb, var(--orb-color) 38%, transparent);
-  animation: orbEmerge 0.22s var(--ease-hypnotic) both, orbLiquidBreathe 4.5s ease-in-out infinite;
-  z-index: 2;
   pointer-events: none;
+  background:
+    radial-gradient(circle at 30% 26%, rgba(255, 255, 255, 0.95) 0%, rgba(255, 255, 255, 0.6) 14%, rgba(255, 255, 255, 0) 40%),
+    radial-gradient(circle at 38% 34%, var(--orb-color) 0%, color-mix(in srgb, var(--orb-color) 65%, #000) 78%, #000 100%);
+  box-shadow:
+    inset -2px -3px 5px rgba(0, 0, 0, 0.8),
+    inset 1px 1px 2px rgba(255, 255, 255, 0.85),
+    0 4px 10px rgba(0, 0, 0, 0.75),
+    0 0 12px color-mix(in srgb, var(--orb-color) 55%, transparent);
+  transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1);
 }
-
-@keyframes orbEmerge {
-  from { transform: translate(-50%, -50%) scale(0.1); opacity: 0; }
-  to   { transform: translate(-50%, -50%) scale(1); opacity: 1; }
-}
-
-@keyframes orbLiquidBreathe {
-  0%, 100% {
-    border-radius: 50% 50% 50% 50%;
-  }
-  33% {
-    border-radius: 48% 52% 49% 51%;
-  }
-  66% {
-    border-radius: 51% 49% 52% 48%;
-  }
-}
-
-/* Orbiting / breathing multi-orb positioning */
-.cell[data-orbs="2"] .orb:nth-child(1) { animation-delay: 0s, 0s; }
-.cell[data-orbs="2"] .orb:nth-child(2) { animation-delay: 0s, 1.2s; }
-
-.cell[data-orbs="3"] .orb:nth-child(1) { animation-delay: 0s, 0s; }
-.cell[data-orbs="3"] .orb:nth-child(2) { animation-delay: 0s, 0.8s; }
-.cell[data-orbs="3"] .orb:nth-child(3) { animation-delay: 0s, 1.6s; }
 
 /* ── Game Over Panel ────────────────────────────────────────── */
 .gameover-panel {

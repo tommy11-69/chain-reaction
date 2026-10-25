@@ -1,7 +1,7 @@
 'use strict';
 
-const PLAYER_COLORS = ['#B7E66A', '#6EA4BF', '#D4A373', '#A48CB4'];
-const PLAYER_COLOR_NAMES = ['Acid Lime', 'Slate Cyan', 'Muted Amber', 'Smoky Mauve'];
+const PLAYER_COLORS = ['#2DFE54', '#FF007F', '#00F5FF', '#FFB703'];
+const PLAYER_COLOR_NAMES = ['Cannabis Green', 'Acid Magenta', 'Electric Cyan', 'Solar Amber'];
 const DEFAULT_ROWS = 9;
 const DEFAULT_COLS = 6;
 const MAX_PLAYERS = 4;
