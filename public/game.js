@@ -798,10 +798,79 @@ function initUI() {
       showScreen('landing');
     });
   });
-  $('grid-size-select').addEventListener('change', e => {
-    const [r, c] = e.target.value.split('x').map(Number);
+  // Lobby Grid Size & Custom Grid Creator
+  const sizeSelect = $('grid-size-select');
+  const customBuilder = $('custom-grid-builder-lobby');
+  const rowsInput = $('custom-rows-lobby');
+  const colsInput = $('custom-cols-lobby');
+  const summaryEl = $('custom-grid-summary-lobby');
+
+  function updateLobbyCustomGridSummary() {
+    if (!rowsInput || !colsInput || !summaryEl) return;
+    let r = parseInt(rowsInput.value) || 14;
+    let c = parseInt(colsInput.value) || 14;
+    r = Math.max(3, Math.min(24, r));
+    c = Math.max(3, Math.min(24, c));
+    rowsInput.value = r;
+    colsInput.value = c;
     gridSize = { rows: r, cols: c };
-  });
+    const cells = r * c;
+    const shape = r === c ? 'Square' : (r > c ? 'Portrait' : 'Landscape');
+    summaryEl.textContent = `${r} \u00D7 ${c} \u2022 ${cells} Cells (${shape})`;
+
+    if (customBuilder) {
+      customBuilder.querySelectorAll('.preset-chip').forEach(btn => {
+        const pr = parseInt(btn.dataset.r);
+        const pc = parseInt(btn.dataset.c);
+        btn.classList.toggle('active', pr === r && pc === c);
+      });
+    }
+  }
+
+  if (sizeSelect) {
+    sizeSelect.addEventListener('change', e => {
+      if (e.target.value === 'custom') {
+        if (customBuilder) customBuilder.classList.remove('hidden');
+        updateLobbyCustomGridSummary();
+      } else {
+        if (customBuilder) customBuilder.classList.add('hidden');
+        const [r, c] = e.target.value.split('x').map(Number);
+        gridSize = { rows: r, cols: c };
+      }
+    });
+  }
+
+  if (customBuilder) {
+    customBuilder.querySelectorAll('.dim-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const targetId = btn.dataset.target;
+        const delta = parseInt(btn.dataset.delta) || 0;
+        const input = $(targetId);
+        if (input) {
+          const cur = parseInt(input.value) || 14;
+          input.value = Math.max(3, Math.min(24, cur + delta));
+          updateLobbyCustomGridSummary();
+        }
+      });
+    });
+
+    if (rowsInput) {
+      rowsInput.addEventListener('input', updateLobbyCustomGridSummary);
+    }
+    if (colsInput) {
+      colsInput.addEventListener('input', updateLobbyCustomGridSummary);
+    }
+
+    customBuilder.querySelectorAll('.preset-chip').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const r = parseInt(btn.dataset.r);
+        const c = parseInt(btn.dataset.c);
+        if (rowsInput) rowsInput.value = r;
+        if (colsInput) colsInput.value = c;
+        updateLobbyCustomGridSummary();
+      });
+    });
+  }
 
   // Board & Game HUD
   $('game-board').addEventListener('click', onCellClick);
@@ -1499,6 +1568,7 @@ function renderBoard(state) {
   const total  = rows * cols;
 
   board.style.gridTemplateColumns = `repeat(${cols}, 1fr)`;
+  board.style.gap = (cols > 10 || rows > 10) ? '1px' : '2px';
   const cellPx = computeCellSize(rows, cols);
 
   // Sync cell count
@@ -1581,16 +1651,24 @@ function renderOrbs(cell, count, color) {
 
 function computeCellSize(rows, cols) {
   const wrapper = document.querySelector('.board-wrapper');
-  if (!wrapper) return 48;
-  const { width, height } = wrapper.getBoundingClientRect();
-  const gap    = 2;
-  const padPx  = (width < 480) ? 8 : 16;
-  const bottomOffset = (width < 768) ? 58 : 46; // Dedicated clearance for Chat FAB tray
-  const avW    = width  - padPx - gap * (cols - 1);
-  const avH    = height - padPx - bottomOffset - gap * (rows - 1);
-  const byW    = Math.floor(avW / cols);
-  const byH    = Math.floor(avH / rows);
-  return Math.max(26, Math.min(byW, byH, 68));
+  if (!wrapper) return 42;
+  const rect = wrapper.getBoundingClientRect();
+  const width = rect.width || window.innerWidth;
+  const height = rect.height || (window.innerHeight - 120);
+
+  const gap = (cols > 10 || rows > 10) ? 1 : 2;
+  const padPx = (width < 480) ? 6 : 14;
+  const bottomOffset = (width < 768) ? 56 : 44; // Dedicated clearance for Chat FAB tray
+
+  const avW = Math.max(80, width - padPx - gap * (cols - 1));
+  const avH = Math.max(80, height - padPx - bottomOffset - gap * (rows - 1));
+
+  const byW = Math.floor(avW / cols);
+  const byH = Math.floor(avH / rows);
+  const fit = Math.min(byW, byH);
+
+  // Scaled minimum cell size (down to 14px) so large custom grids (14x14, 16x16, 20x20) fit without breaking
+  return Math.max(14, Math.min(fit, 68));
 }
 
 function getCM(r, c, rows, cols) {

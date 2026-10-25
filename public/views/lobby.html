@@ -40,8 +40,49 @@
             <option value="6x9">Wide 6 &times; 9 (Neelam Aatam)</option>
             <option value="9x9">Periya Board 9 &times; 9 (Full Blast Sambavam)</option>
             <option value="6x6">Quick 6 &times; 6 (Speed-a mudinjidum)</option>
+            <option value="custom">🛠️ Custom Grid Creator (Un Ishtam)...</option>
           </select>
         </div>
+
+        <!-- Custom Grid Builder Panel -->
+        <div id="custom-grid-builder-lobby" class="custom-grid-builder hidden">
+          <div class="custom-grid-header">
+            <span class="custom-grid-badge">🛠️ CUSTOM MAP CREATOR</span>
+            <span id="custom-grid-summary-lobby" class="custom-grid-summary">14 &times; 14 &bull; 196 Cells</span>
+          </div>
+
+          <div class="custom-grid-inputs-row">
+            <div class="custom-dim-field">
+              <label for="custom-rows-lobby">Rows (Height)</label>
+              <div class="custom-dim-stepper">
+                <button type="button" class="dim-btn" data-target="custom-rows-lobby" data-delta="-1" aria-label="Decrease rows">−</button>
+                <input type="number" id="custom-rows-lobby" min="3" max="24" value="14" class="dim-input" />
+                <button type="button" class="dim-btn" data-target="custom-rows-lobby" data-delta="1" aria-label="Increase rows">+</button>
+              </div>
+            </div>
+            <div class="custom-dim-separator">&times;</div>
+            <div class="custom-dim-field">
+              <label for="custom-cols-lobby">Cols (Width)</label>
+              <div class="custom-dim-stepper">
+                <button type="button" class="dim-btn" data-target="custom-cols-lobby" data-delta="-1" aria-label="Decrease columns">−</button>
+                <input type="number" id="custom-cols-lobby" min="3" max="24" value="14" class="dim-input" />
+                <button type="button" class="dim-btn" data-target="custom-cols-lobby" data-delta="1" aria-label="Increase columns">+</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Quick Preset Chips -->
+          <div class="custom-presets-row">
+            <span class="presets-label">Quick:</span>
+            <button type="button" class="preset-chip" data-r="10" data-c="10">10&times;10</button>
+            <button type="button" class="preset-chip" data-r="12" data-c="12">12&times;12</button>
+            <button type="button" class="preset-chip" data-r="12" data-c="14">12&times;14</button>
+            <button type="button" class="preset-chip active" data-r="14" data-c="14">14&times;14</button>
+            <button type="button" class="preset-chip" data-r="16" data-c="12">16&times;12</button>
+            <button type="button" class="preset-chip" data-r="16" data-c="16">16&times;16</button>
+          </div>
+        </div>
+
         <button id="start-game-btn" class="btn btn-primary full-width" disabled>
           Aatatha Aarambi da! (Start)
         </button>

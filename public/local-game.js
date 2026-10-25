@@ -200,6 +200,77 @@ function initSetupScreen() {
   $('btn-local-play-again').onclick = restartCurrentMatch;
   $('btn-local-change-settings').onclick = () => showScreen('setup');
 
+  // Custom Grid Creator Controls (Local)
+  const localGridSelect = $('local-grid-size');
+  const customLocalBuilder = $('custom-grid-builder-local');
+  const localRowsInput = $('custom-rows-local');
+  const localColsInput = $('custom-cols-local');
+  const localSummaryEl = $('custom-grid-summary-local');
+
+  function updateLocalCustomGridSummary() {
+    if (!localRowsInput || !localColsInput || !localSummaryEl) return;
+    let r = parseInt(localRowsInput.value) || 14;
+    let c = parseInt(localColsInput.value) || 14;
+    r = Math.max(3, Math.min(24, r));
+    c = Math.max(3, Math.min(24, c));
+    localRowsInput.value = r;
+    localColsInput.value = c;
+    const cells = r * c;
+    const shape = r === c ? 'Square' : (r > c ? 'Portrait' : 'Landscape');
+    localSummaryEl.textContent = `${r} \u00D7 ${c} \u2022 ${cells} Cells (${shape})`;
+
+    if (customLocalBuilder) {
+      customLocalBuilder.querySelectorAll('.preset-chip').forEach(btn => {
+        const pr = parseInt(btn.dataset.r);
+        const pc = parseInt(btn.dataset.c);
+        btn.classList.toggle('active', pr === r && pc === c);
+      });
+    }
+  }
+
+  if (localGridSelect) {
+    localGridSelect.addEventListener('change', e => {
+      if (e.target.value === 'custom') {
+        if (customLocalBuilder) customLocalBuilder.classList.remove('hidden');
+        updateLocalCustomGridSummary();
+      } else {
+        if (customLocalBuilder) customLocalBuilder.classList.add('hidden');
+      }
+    });
+  }
+
+  if (customLocalBuilder) {
+    customLocalBuilder.querySelectorAll('.dim-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const targetId = btn.dataset.target;
+        const delta = parseInt(btn.dataset.delta) || 0;
+        const input = $(targetId);
+        if (input) {
+          const cur = parseInt(input.value) || 14;
+          input.value = Math.max(3, Math.min(24, cur + delta));
+          updateLocalCustomGridSummary();
+        }
+      });
+    });
+
+    if (localRowsInput) {
+      localRowsInput.addEventListener('input', updateLocalCustomGridSummary);
+    }
+    if (localColsInput) {
+      localColsInput.addEventListener('input', updateLocalCustomGridSummary);
+    }
+
+    customLocalBuilder.querySelectorAll('.preset-chip').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const r = parseInt(btn.dataset.r);
+        const c = parseInt(btn.dataset.c);
+        if (localRowsInput) localRowsInput.value = r;
+        if (localColsInput) localColsInput.value = c;
+        updateLocalCustomGridSummary();
+      });
+    });
+  }
+
   window.addEventListener('resize', () => {
     if (gameStatus === 'playing') {
       renderBoard();
@@ -252,7 +323,16 @@ function showScreen(screen) {
 function startLocalGame() {
   getAudioContext();
   passPhoneModalShown = false;
-  const [r, c] = $('local-grid-size').value.split('x').map(Number);
+  let r, c;
+  const selectVal = $('local-grid-size').value;
+  if (selectVal === 'custom') {
+    const rInput = $('custom-rows-local');
+    const cInput = $('custom-cols-local');
+    r = Math.max(3, Math.min(24, parseInt(rInput ? rInput.value : 14) || 14));
+    c = Math.max(3, Math.min(24, parseInt(cInput ? cInput.value : 14) || 14));
+  } else {
+    [r, c] = selectVal.split('x').map(Number);
+  }
   boardRows = r;
   boardCols = c;
 
@@ -765,6 +845,7 @@ function renderBoard() {
   const board = $('game-board');
   const total = boardRows * boardCols;
   board.style.gridTemplateColumns = `repeat(${boardCols}, 1fr)`;
+  board.style.gap = (boardCols > 10 || boardRows > 10) ? '1px' : '2px';
 
   const cellPx = computeCellSize(boardRows, boardCols);
 
@@ -834,15 +915,21 @@ function renderOrbs(cell, count, color) {
 
 function computeCellSize(rows, cols) {
   const wrapper = document.querySelector('.board-wrapper');
-  if (!wrapper) return 48;
-  const { width, height } = wrapper.getBoundingClientRect();
-  const gap = 2;
-  const padPx = (width < 480) ? 8 : 16;
-  const avW = width - padPx - gap * (cols - 1);
-  const avH = height - padPx - gap * (rows - 1);
+  if (!wrapper) return 42;
+  const rect = wrapper.getBoundingClientRect();
+  const width = rect.width || window.innerWidth;
+  const height = rect.height || (window.innerHeight - 100);
+
+  const gap = (cols > 10 || rows > 10) ? 1 : 2;
+  const padPx = (width < 480) ? 6 : 14;
+  const avW = Math.max(80, width - padPx - gap * (cols - 1));
+  const avH = Math.max(80, height - padPx - gap * (rows - 1));
+
   const byW = Math.floor(avW / cols);
   const byH = Math.floor(avH / rows);
-  return Math.max(26, Math.min(byW, byH, 68));
+  const fit = Math.min(byW, byH);
+
+  return Math.max(14, Math.min(fit, 68));
 }
 
 // ─── Tamil Slang Commentary ───────────────────────────────────────────────────

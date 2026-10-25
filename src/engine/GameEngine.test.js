@@ -442,3 +442,82 @@ describe('8-Player Support', () => {
   });
 });
 
+// ─── Custom Map Creator Tests (14x14, 12x14, High Dimensions) ─────────────────
+
+describe('Custom Map Creator & Large Grid Stability', () => {
+  test('creates a 14x14 custom map with correct critical mass distribution', () => {
+    const e = new GameEngine(14, 14, [
+      { id: 'p1', name: 'Rolex', color: '#2DFE54' },
+      { id: 'p2', name: 'Dilli', color: '#FF007F' },
+    ]);
+
+    assert.equal(e.rows, 14);
+    assert.equal(e.cols, 14);
+    assert.equal(e.grid.length, 14);
+    assert.equal(e.grid[0].length, 14);
+
+    // 4 Corners: CM=2
+    assert.equal(e.getCriticalMass(0, 0), 2);
+    assert.equal(e.getCriticalMass(0, 13), 2);
+    assert.equal(e.getCriticalMass(13, 0), 2);
+    assert.equal(e.getCriticalMass(13, 13), 2);
+
+    // Edges: CM=3
+    assert.equal(e.getCriticalMass(0, 7), 3);
+    assert.equal(e.getCriticalMass(13, 7), 3);
+    assert.equal(e.getCriticalMass(7, 0), 3);
+    assert.equal(e.getCriticalMass(7, 13), 3);
+
+    // Interior: CM=4
+    assert.equal(e.getCriticalMass(1, 1), 4);
+    assert.equal(e.getCriticalMass(7, 7), 4);
+    assert.equal(e.getCriticalMass(12, 12), 4);
+  });
+
+  test('creates a 12x14 custom map with valid boundary checks', () => {
+    const e = new GameEngine(12, 14, [
+      { id: 'p1', name: 'Rolex', color: '#2DFE54' },
+      { id: 'p2', name: 'Dilli', color: '#FF007F' },
+    ]);
+
+    assert.equal(e.rows, 12);
+    assert.equal(e.cols, 14);
+
+    // Valid corner move at (11, 13)
+    const m1 = e.placeOrb('p1', 11, 13);
+    assert.equal(m1.success, true);
+    assert.equal(e.grid[11][13].orbs, 1);
+    assert.equal(e.grid[11][13].owner, 'p1');
+
+    // Out of bounds checks
+    const m2 = e.placeOrb('p2', 12, 13);
+    assert.equal(m2.success, false);
+    assert.equal(m2.reason, 'Cell out of bounds');
+
+    const m3 = e.placeOrb('p2', 11, 14);
+    assert.equal(m3.success, false);
+    assert.equal(m3.reason, 'Cell out of bounds');
+  });
+
+  test('resolves explosions and chain reactions stably on a 14x14 grid', () => {
+    const e = new GameEngine(14, 14, [
+      { id: 'p1', name: 'Rolex', color: '#2DFE54' },
+      { id: 'p2', name: 'Dilli', color: '#FF007F' },
+    ]);
+
+    // Place on corner (0,0) with CM=2
+    e.placeOrb('p1', 0, 0); // 1 orb
+    e.placeOrb('p2', 5, 5); // opponent move
+    const burst = e.placeOrb('p1', 0, 0); // 2 orbs -> explodes!
+
+    assert.equal(burst.success, true);
+    assert.ok(burst.waves.length >= 1);
+    assert.equal(e.grid[0][0].orbs, 0);
+    assert.equal(e.grid[0][1].owner, 'p1');
+    assert.equal(e.grid[1][0].owner, 'p1');
+    assert.equal(e.grid[0][1].orbs, 1);
+    assert.equal(e.grid[1][0].orbs, 1);
+  });
+});
+
+

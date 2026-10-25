@@ -112,8 +112,8 @@ io.on('connection', socket => {
     if (room.hostId !== socket.id)
       return socket.emit('error', { message: 'Only the host can start the game.' });
 
-    const r = clamp(parseInt(rows) || DEFAULT_ROWS, 4, 12);
-    const c = clamp(parseInt(cols) || DEFAULT_COLS, 4, 12);
+    const r = clamp(parseInt(rows) || DEFAULT_ROWS, 3, 24);
+    const c = clamp(parseInt(cols) || DEFAULT_COLS, 3, 24);
     const result = room.startGame(r, c);
     if (!result.success) return socket.emit('error', { message: result.reason });
 
