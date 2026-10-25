@@ -16,13 +16,14 @@ class Room {
     this.lastCols = DEFAULT_COLS;
     this.rematchVotes = new Set();
     this.autoSkipTimer = null;
+    this.disconnectGraceTimer = null;
     this.createdAt = Date.now();
     this.lastActivity = Date.now();
   }
 
   // ── Player management ──────────────────────────────────────────────────────
 
-  addPlayer(socketId, name) {
+  addPlayer(socketId, name, token = null) {
     if (this.players.length >= MAX_PLAYERS)
       return { success: false, reason: `Room is full (max ${MAX_PLAYERS} players)` };
     if (this.status !== 'waiting')
@@ -31,14 +32,15 @@ class Room {
       return { success: false, reason: 'Name already taken in this room' };
 
     const color = PLAYER_COLORS[this.players.length];
-    const player = { id: socketId, name, color, connected: true };
+    const playerToken = token || Math.random().toString(36).substring(2) + Date.now().toString(36);
+    const player = { id: socketId, name, color, connected: true, token: playerToken };
     this.players.push(player);
     if (!this.hostId) this.hostId = socketId;
     this._touch();
     return { success: true, player };
   }
 
-  disconnectPlayer(socketId) {
+  disconnectPlayer(socketId, io) {
     const p = this.players.find(pl => pl.id === socketId);
     if (!p) return false;
     p.connected = false;
@@ -49,21 +51,70 @@ class Room {
       this.hostId = next ? next.id : null;
     }
 
-    // In an active game, check if only one connected player remains
+    // In an active game, give a 60-second grace period before declaring default win
     if (this.engine && this.status === 'playing') {
       const connected = this.players.filter(pl => pl.connected);
       if (connected.length === 1) {
-        const winner = this.engine.players.find(pl => pl.id === connected[0].id);
-        if (winner) {
-          this.engine.status = 'finished';
-          this.engine.winner = winner;
-          this.status = 'finished';
-        }
+        if (this.disconnectGraceTimer) clearTimeout(this.disconnectGraceTimer);
+        this.disconnectGraceTimer = setTimeout(() => {
+          this.disconnectGraceTimer = null;
+          if (this.status !== 'playing' || !this.engine) return;
+          const stillConnected = this.players.filter(pl => pl.connected);
+          if (stillConnected.length === 1) {
+            const winner = this.engine.players.find(pl => pl.id === stillConnected[0].id);
+            if (winner) {
+              this.engine.status = 'finished';
+              this.engine.winner = winner;
+              this.status = 'finished';
+              if (io) {
+                io.to(this.code).emit('state_update', {
+                  state: this.engine.getState(),
+                  waves: [],
+                  lastMove: null,
+                  commentary: {
+                    text: `${p.name} varala da! Timeout aayiduchu, default winner declared! 🏆`,
+                    category: 'victory',
+                    priority: 5,
+                    major: true
+                  }
+                });
+              }
+            }
+          }
+        }, 60_000);
       }
     }
 
     this._touch();
     return true;
+  }
+
+  cancelDisconnectGrace() {
+    if (this.disconnectGraceTimer) {
+      clearTimeout(this.disconnectGraceTimer);
+      this.disconnectGraceTimer = null;
+    }
+  }
+
+  removePlayer(socketId) {
+    const idx = this.players.findIndex(p => p.id === socketId);
+    if (idx === -1) return null;
+    const removed = this.players.splice(idx, 1)[0];
+    if (this.hostId === socketId) {
+      const next = this.players.find(p => p.connected);
+      this.hostId = next ? next.id : null;
+    }
+    // If active game, eliminate player in engine if present
+    if (this.engine && this.status === 'playing') {
+      const ep = this.engine.players.find(p => p.id === socketId);
+      if (ep) ep.alive = false;
+      this.engine._checkVictory();
+      if (this.engine.status === 'finished') {
+        this.status = 'finished';
+      }
+    }
+    this._touch();
+    return removed;
   }
 
   /** Returns the player object if reconnection succeeded, else null. */
@@ -72,6 +123,7 @@ class Room {
     if (!p) return null;
     p.id = newSocketId;
     p.connected = true;
+    this.cancelDisconnectGrace();
     if (this.hostId === oldSocketId) this.hostId = newSocketId;
     // Keep engine in sync
     if (this.engine) {
@@ -223,22 +275,22 @@ class RoomManager {
 
   /**
    * Join (or reconnect to) a room.
-   * Reconnection: same name + same room code + previously disconnected slot.
+   * Reconnection: matching session token OR (same name + previously disconnected slot).
    */
-  joinRoom(code, socketId, playerName) {
+  joinRoom(code, socketId, playerName, token = null) {
     const room = this.rooms.get(code.toUpperCase());
     if (!room) return { success: false, reason: 'Room not found. Check the code.' };
 
-    // Reconnection path: same name, was disconnected
+    // Reconnection path: matching token or same name while disconnected
     const existing = room.players.find(
-      p => p.name === playerName && !p.connected
+      p => (token && p.token === token) || (p.name === playerName && !p.connected)
     );
     if (existing) {
       room.reconnectPlayer(existing.id, socketId);
       return { success: true, code: room.code, room, player: existing, reconnected: true };
     }
 
-    const result = room.addPlayer(socketId, playerName);
+    const result = room.addPlayer(socketId, playerName, token);
     if (!result.success) return result;
     return { success: true, code: room.code, room, player: result.player, reconnected: false };
   }
@@ -250,9 +302,16 @@ class RoomManager {
     return null;
   }
 
-  disconnect(socketId) {
+  leaveRoom(socketId) {
     const room = this.getRoomBySocket(socketId);
-    if (room) room.disconnectPlayer(socketId);
+    if (!room) return null;
+    const removedPlayer = room.removePlayer(socketId);
+    return { room, removedPlayer };
+  }
+
+  disconnect(socketId, io) {
+    const room = this.getRoomBySocket(socketId);
+    if (room) room.disconnectPlayer(socketId, io);
     return room;
   }
 

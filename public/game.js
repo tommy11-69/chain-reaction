@@ -9,12 +9,14 @@
 let socket;
 let myPlayerId     = null;
 let myRoomCode     = null;
+let myPlayerToken  = null;
 let isHost         = false;
 let currentState   = null;
 let prevGridFlat   = null;
 let gridSize       = { rows: 9, cols: 6 };
 let isAnimatingFX  = false;
 let fxQueue        = [];
+let pendingExitCallback = null;
 
 // Settings
 let audioEnabled   = false;
@@ -41,6 +43,8 @@ document.addEventListener('DOMContentLoaded', () => {
   initBackgroundCanvas();
   initSocket();
   initUI();
+  initNavigationGuards();
+  checkActiveSession();
 });
 
 // ─── Preferences ─────────────────────────────────────────────────────────────
@@ -534,12 +538,49 @@ function resizeBgCanvas() {
 }
 
 // ─── Socket.IO Setup ─────────────────────────────────────────────────────────
-function initSocket() {
-  socket = io({ reconnectionAttempts: 10 });
+function updateNetworkBadge(status) {
+  const badge = $('network-badge');
+  if (!badge) return;
+  badge.className = `network-badge ${status}`;
+  if (status === 'live') {
+    badge.innerHTML = '<span class="net-dot"></span> LIVE';
+  } else if (status === 'reconnecting') {
+    badge.innerHTML = '<span class="net-dot"></span> CONNECTING...';
+  } else {
+    badge.innerHTML = '<span class="net-dot"></span> OFFLINE';
+  }
+}
 
-  socket.on('connect',    () => console.log('[ws] connected', socket.id));
-  socket.on('disconnect', () => showToast('Net cut aayiduchu da baadu... Connect aagudhu!', 'warning'));
-  socket.on('reconnect',  () => showToast('Thirumba ulla vandhutta da! Aatam continue aagudhu!', 'success'));
+function initSocket() {
+  socket = io({ reconnectionAttempts: 15, timeout: 10000 });
+
+  socket.on('connect', () => {
+    console.log('[ws] connected', socket.id);
+    updateNetworkBadge('live');
+    // If we have an active session and disconnected, auto re-authenticate with server
+    const session = getStoredSession();
+    if (session && session.roomCode && session.playerName && (!myPlayerId || myPlayerId !== socket.id)) {
+      socket.emit('join_room', {
+        roomCode: session.roomCode,
+        playerName: session.playerName,
+        playerToken: session.playerToken,
+      });
+    }
+  });
+
+  socket.on('disconnect', () => {
+    updateNetworkBadge('reconnecting');
+    showToast('Net cut aayiduchu da baadu... Connect aagudhu!', 'warning');
+  });
+
+  socket.on('connect_error', () => {
+    updateNetworkBadge('offline');
+  });
+
+  socket.on('reconnect', () => {
+    updateNetworkBadge('live');
+    showToast('Thirumba ulla vandhutta da! Aatam continue aagudhu!', 'success');
+  });
 
   socket.on('room_joined',          onRoomJoined);
   socket.on('room_updated',         onRoomUpdated);
@@ -548,6 +589,7 @@ function initSocket() {
   socket.on('move_rejected',        onMoveRejected);
   socket.on('player_disconnected',  onPlayerDisconnected);
   socket.on('rematch_vote',         onRematchVote);
+  socket.on('left_room',            onLeftRoom);
   socket.on('error',                data => {
     const errorMap = {
       'Room is full (max 8 players)': 'Room full aayiduchu da, 8 peru thaan aada mudiyum!',
@@ -687,6 +729,34 @@ function initUI() {
     });
   });
 
+  // Resume match handlers
+  $('resume-btn').addEventListener('click', () => {
+    const session = getStoredSession();
+    if (session && session.roomCode && session.playerName) {
+      socket.emit('join_room', {
+        roomCode: session.roomCode,
+        playerName: session.playerName,
+        playerToken: session.playerToken,
+      });
+    }
+  });
+
+  $('discard-session-btn').addEventListener('click', () => {
+    clearStoredSession();
+    checkActiveSession();
+    showToast('Old match discarded!', 'info');
+  });
+
+  // Modal handlers
+  $('modal-cancel-btn').addEventListener('click', hideExitModal);
+  $('modal-confirm-exit-btn').addEventListener('click', () => {
+    hideExitModal();
+    if (pendingExitCallback) {
+      pendingExitCallback();
+      pendingExitCallback = null;
+    }
+  });
+
   // Landing
   $('create-room-btn').addEventListener('click', createRoom);
   $('show-join-btn').addEventListener('click', toggleJoinSection);
@@ -700,18 +770,35 @@ function initUI() {
   // Lobby
   $('copy-code-btn').addEventListener('click', copyRoomCode);
   $('start-game-btn').addEventListener('click', startGame);
+  $('leave-lobby-btn').addEventListener('click', () => {
+    promptExitConfirmation(() => {
+      socket.emit('leave_room');
+      clearStoredSession();
+      showScreen('landing');
+    });
+  });
   $('grid-size-select').addEventListener('change', e => {
     const [r, c] = e.target.value.split('x').map(Number);
     gridSize = { rows: r, cols: c };
   });
 
-  // Board
+  // Board & Game HUD
   $('game-board').addEventListener('click', onCellClick);
   $('game-room-badge').addEventListener('click', copyRoomCode);
+  $('ingame-exit-btn').addEventListener('click', () => {
+    promptExitConfirmation(() => {
+      socket.emit('leave_room');
+      clearStoredSession();
+      showScreen('landing');
+    });
+  });
 
   // Game over
   $('rematch-btn').addEventListener('click', requestRematch);
-  $('leave-btn').addEventListener('click', () => location.reload());
+  $('leave-btn').addEventListener('click', () => {
+    clearStoredSession();
+    location.reload();
+  });
 
   // Window resize -> recalculate cell size & fx canvas
   window.addEventListener('resize', () => {
@@ -720,6 +807,95 @@ function initUI() {
       syncFxCanvas();
     }
   });
+}
+
+// ─── Session Management ──────────────────────────────────────────────────────
+function saveSession(roomCode, playerName, playerToken) {
+  try {
+    const data = { roomCode, playerName, playerToken, savedAt: Date.now() };
+    sessionStorage.setItem('cr_active_session', JSON.stringify(data));
+    localStorage.setItem('cr_last_session', JSON.stringify(data));
+  } catch (_) {}
+}
+
+function getStoredSession() {
+  try {
+    const raw = sessionStorage.getItem('cr_active_session') || localStorage.getItem('cr_last_session');
+    if (!raw) return null;
+    return JSON.parse(raw);
+  } catch (_) {
+    return null;
+  }
+}
+
+function clearStoredSession() {
+  try {
+    sessionStorage.removeItem('cr_active_session');
+    localStorage.removeItem('cr_last_session');
+  } catch (_) {}
+}
+
+function checkActiveSession() {
+  const session = getStoredSession();
+  const banner = $('resume-banner');
+  const resumeCode = $('resume-code');
+  if (session && session.roomCode && session.playerName) {
+    if (resumeCode) resumeCode.textContent = session.roomCode;
+    if (banner) banner.classList.remove('hidden');
+    const nameInput = $('player-name');
+    if (nameInput && !nameInput.value) nameInput.value = session.playerName;
+  } else {
+    if (banner) banner.classList.add('hidden');
+  }
+}
+
+// ─── Exit Modal & Navigation Guard ───────────────────────────────────────────
+function promptExitConfirmation(onConfirm) {
+  pendingExitCallback = onConfirm;
+  const modal = $('modal-exit');
+  if (modal) modal.classList.remove('hidden');
+}
+
+function hideExitModal() {
+  const modal = $('modal-exit');
+  if (modal) modal.classList.add('hidden');
+  pendingExitCallback = null;
+}
+
+function initNavigationGuards() {
+  // Push state so back button triggers popstate instead of exiting the page
+  window.history.pushState({ page: 'cr' }, '', window.location.href);
+
+  window.addEventListener('popstate', (e) => {
+    const active = getCurrentActiveScreen();
+    if (active === 'game' || active === 'lobby') {
+      window.history.pushState({ page: 'cr' }, '', window.location.href);
+      promptExitConfirmation(() => {
+        socket.emit('leave_room');
+        clearStoredSession();
+        showScreen('landing');
+      });
+    }
+  });
+
+  window.addEventListener('beforeunload', (e) => {
+    const active = getCurrentActiveScreen();
+    if (active === 'game') {
+      e.preventDefault();
+      e.returnValue = 'Match nadandhuttu irukku da!';
+      return e.returnValue;
+    }
+  });
+}
+
+function onLeftRoom() {
+  clearStoredSession();
+  myRoomCode = null;
+  myPlayerId = null;
+  currentState = null;
+  showScreen('landing');
+  checkActiveSession();
+  showToast('Room-la irundhu veliya vandhutta!', 'info');
 }
 
 // ─── Screen Transitions ──────────────────────────────────────────────────────
@@ -772,15 +948,23 @@ function joinRoom() {
     showToast('6 letter room code poduda olunga!', 'error');
     return;
   }
-  socket.emit('join_room', { roomCode: code, playerName: name });
+  const session = getStoredSession();
+  const token = (session && session.roomCode === code) ? session.playerToken : null;
+  socket.emit('join_room', { roomCode: code, playerName: name, playerToken: token });
 }
 
 // ─── Lobby Handlers ──────────────────────────────────────────────────────────
 function onRoomJoined(data) {
-  const { roomCode, players, hostId, playerId, isHost: host, reconnected, gameState } = data;
-  myPlayerId = playerId;
-  myRoomCode = roomCode;
-  isHost     = host;
+  const { roomCode, players, hostId, playerId, playerToken, isHost: host, reconnected, gameState } = data;
+  myPlayerId   = playerId;
+  myRoomCode   = roomCode;
+  myPlayerToken = playerToken;
+  isHost       = host;
+
+  // Persist session
+  const curName = $('player-name') ? $('player-name').value.trim() : 'Player';
+  const myPlayerObj = players.find(p => p.id === playerId);
+  saveSession(roomCode, (myPlayerObj ? myPlayerObj.name : curName), playerToken);
 
   if (reconnected && gameState) {
     onGameStarted({ state: gameState });
@@ -1065,8 +1249,10 @@ function executeCascadeSequence(data, waves) {
     });
 
     // 2. Animate psychedelic plasma trails, shockwaves & sparks
-    const trailDuration = waves.length > 25 ? 45 : (waves.length > 10 ? 80 : 140);
-    const waveDelay = waves.length > 25 ? 20 : (waves.length > 10 ? 40 : 75);
+    // Keep pacing hypnotic, legible, and smooth even on 8-9+ chained explosions
+    // Previously dropped down to 20ms which caused visual stutter and CSS class clashing
+    const trailDuration = waves.length > 20 ? 110 : (waves.length > 8 ? 140 : 180);
+    const waveDelay     = waves.length > 20 ? 120 : (waves.length > 8 ? 150 : 200);
     const startTime = performance.now();
 
     function drawTrails(now) {
@@ -1131,13 +1317,16 @@ function executeCascadeSequence(data, waves) {
       if (progress < 1.0) {
         requestAnimationFrame(drawTrails);
       } else {
+        // Clear canvas frame before triggering cell ripple
+        if (ctx) ctx.clearRect(0, 0, fxCanvas.width, fxCanvas.height);
+
         // Impact on receiving cells
         trails.forEach(t => {
           t.targetCell.classList.add('receiving-ripple');
-          setTimeout(() => t.targetCell.classList.remove('receiving-ripple'), 300);
+          setTimeout(() => t.targetCell.classList.remove('receiving-ripple'), 280);
         });
 
-        // Delay to next wave
+        // Controlled delay to next wave so eyes can follow the chain reaction
         currentWaveIdx++;
         setTimeout(runNextWave, waveDelay);
       }
@@ -1219,14 +1408,19 @@ function renderPlayerList(state) {
   list.innerHTML = '';
 
   players.forEach((p, i) => {
+    const isDisconnected = p.connected === false;
     const div = document.createElement('div');
     div.className = 'game-player-item' +
       (i === currentPlayerIndex ? ' active-player' : '') +
-      (!p.alive                 ? ' eliminated'    : '');
+      (!p.alive                 ? ' eliminated'    : '') +
+      (isDisconnected           ? ' player-offline' : '');
 
     div.innerHTML = `
       <span class="player-dot" style="background:${esc(p.color)};color:${esc(p.color)}"></span>
-      <span class="player-name" title="${esc(p.name)}">${esc(p.name)}</span>
+      <span class="player-name" title="${esc(p.name)}">
+        ${esc(p.name)}
+        ${isDisconnected ? '<span class="player-status-tag">RECONNECTING...</span>' : ''}
+      </span>
       <span class="orb-count">${p.alive ? p.orbCount : '✕'}</span>
     `;
     list.appendChild(div);

@@ -35,21 +35,23 @@ io.on('connection', socket => {
 
     socket.join(result.code);
     socket.emit('room_joined', {
-      roomCode: result.code,
-      players:  result.room.players,
-      hostId:   result.room.hostId,
-      playerId: socket.id,
-      isHost:   true,
+      roomCode:    result.code,
+      players:     result.room.players,
+      hostId:      result.room.hostId,
+      playerId:    socket.id,
+      playerToken: result.player.token,
+      isHost:      true,
     });
   });
 
   // ── Join room ────────────────────────────────────────────────────────────
-  socket.on('join_room', ({ roomCode, playerName } = {}) => {
+  socket.on('join_room', ({ roomCode, playerName, playerToken } = {}) => {
     const name = sanitizeName(playerName);
     const code = sanitizeCode(roomCode);
+    const token = typeof playerToken === 'string' ? playerToken.trim() : null;
     if (!name || !code) return socket.emit('error', { message: 'Name and room code are required.' });
 
-    const result = rooms.joinRoom(code, socket.id, name);
+    const result = rooms.joinRoom(code, socket.id, name, token);
     if (!result.success) return socket.emit('error', { message: result.reason });
 
     socket.join(result.code);
@@ -60,6 +62,7 @@ io.on('connection', socket => {
       players:     result.room.players,
       hostId:      result.room.hostId,
       playerId:    socket.id,
+      playerToken: result.player.token,
       isHost:      result.room.hostId === socket.id,
       reconnected: result.reconnected,
       gameState:   result.reconnected && result.room.engine
@@ -72,6 +75,33 @@ io.on('connection', socket => {
       players: result.room.players,
       hostId:  result.room.hostId,
     });
+  });
+
+  // ── Leave room voluntarily ──────────────────────────────────────────────
+  socket.on('leave_room', () => {
+    const res = rooms.leaveRoom(socket.id);
+    if (res && res.room) {
+      const { room, removedPlayer } = res;
+      socket.leave(room.code);
+      socket.emit('left_room', { success: true });
+      io.to(room.code).emit('room_updated', {
+        players: room.players,
+        hostId:  room.hostId,
+      });
+      if (room.status === 'playing' && room.engine) {
+        io.to(room.code).emit('state_update', {
+          state: room.engine.getState(),
+          waves: [],
+          lastMove: null,
+          commentary: {
+            text: `${removedPlayer ? removedPlayer.name : 'A player'} ooditaan da baadu! (Left the game) 🏃💨`,
+            category: 'elimination',
+            priority: 4,
+            major: true,
+          },
+        });
+      }
+    }
   });
 
   // ── Start game ───────────────────────────────────────────────────────────
@@ -146,7 +176,7 @@ io.on('connection', socket => {
   // ── Disconnect ───────────────────────────────────────────────────────────
   socket.on('disconnect', () => {
     console.log(`[-] ${socket.id}`);
-    const room = rooms.disconnect(socket.id);
+    const room = rooms.disconnect(socket.id, io);
     if (!room) return;
 
     io.to(room.code).emit('player_disconnected', {

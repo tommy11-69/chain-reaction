@@ -60,7 +60,17 @@
         <p class="game-subtitle">motha board-um blast aaga pogudhu &middot; 2&ndash;8 aalunga</p>
       </header>
 
-      <div class="panel main-panel">
+        <div id="resume-banner" class="resume-banner hidden">
+          <div class="resume-content">
+            <span class="resume-badge">LIVE MATCH FOUND ⚡</span>
+            <p id="resume-text" class="resume-text">Ongoing match detected in room: <strong id="resume-code"></strong></p>
+          </div>
+          <div class="resume-actions">
+            <button id="resume-btn" class="btn btn-primary btn-sm">Thirumba Ulla Vaa (Rejoin)</button>
+            <button id="discard-session-btn" class="btn btn-secondary btn-sm">Discard</button>
+          </div>
+        </div>
+
         <div class="form-group">
           <label for="player-name">Dei Un Peru Ennada?</label>
           <input id="player-name" type="text" maxlength="20"
@@ -99,7 +109,7 @@
       </footer>
 
     </div>
-  </div>
+  
 
   <!-- ═══════════════════════════════════════════════════════
        SCREEN: LOBBY
@@ -150,7 +160,12 @@
           </button>
         </div>
 
-        <p id="lobby-status" class="lobby-status">Host payya start pandra varaikkum amaidhiyaa iru da...</p>
+        <div class="lobby-actions-footer">
+          <p id="lobby-status" class="lobby-status">Host payya start pandra varaikkum amaidhiyaa iru da...</p>
+          <button id="leave-lobby-btn" class="btn btn-secondary btn-sm full-width" style="margin-top:12px;">
+            Lobby-la irundhu Veliye Po (Leave)
+          </button>
+        </div>
       </div>
     </div>
   </div>
@@ -169,6 +184,9 @@
             <span class="topbar-label">ROOM-U</span>
             <span id="game-room-code-display" class="topbar-code">——</span>
           </div>
+          <span id="network-badge" class="network-badge live" title="Network status">
+            <span class="net-dot"></span> LIVE
+          </span>
         </div>
 
         <div id="turn-indicator" class="turn-indicator">
@@ -192,6 +210,10 @@
           <button id="ingame-help-btn" class="hud-pill-btn" title="Aata Vidhi (Rules)" aria-label="Game Rules">
             <span class="hud-pill-dot active" style="background:var(--accent-cyan);box-shadow:0 0 5px var(--accent-cyan)"></span>
             <span>VAZHI 📖</span>
+          </button>
+          <button id="ingame-exit-btn" class="hud-pill-btn exit-pill-btn" title="Aatathai vittu veliya po" aria-label="Exit Game">
+            <span class="hud-pill-dot" style="background:#ff4d4d;box-shadow:0 0 5px #ff4d4d"></span>
+            <span>EXIT ✕</span>
           </button>
         </div>
       </header>
@@ -621,6 +643,29 @@
             Veetukku Kelambu (Exit)
           </button>
         </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════════
+       EXIT CONFIRMATION MODAL
+  ════════════════════════════════════════════════════════ -->
+  <div id="modal-exit" class="modal-backdrop hidden" role="dialog" aria-modal="true" aria-labelledby="modal-exit-title">
+    <div class="modal-card">
+      <div class="modal-header">
+        <span class="modal-icon">⚠️</span>
+        <h3 id="modal-exit-title" class="modal-title">Nijamaave Kelamburiya Da?</h3>
+      </div>
+      <p id="modal-exit-desc" class="modal-desc">
+        Aatam nadandhuttu irukku da baadu! Ippo veliya pona game-la irundhu unna eliminate panni un friend-galukku victory poirum!
+      </p>
+      <div class="modal-actions">
+        <button id="modal-cancel-btn" class="btn btn-primary">
+          Illa Illa, Aaduraen! (Stay & Play)
+        </button>
+        <button id="modal-confirm-exit-btn" class="btn btn-secondary btn-danger">
+          Kelamburaen Da (Exit Anyway)
+        </button>
       </div>
     </div>
   </div>
