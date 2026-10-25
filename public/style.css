@@ -1593,18 +1593,21 @@ body.reduce-motion .cell.critical::before {
 
 .demo-cell.p1-theme {
   --cell-color: #2DFE54;
+  --orb-color: #2DFE54;
   border-color: rgba(45, 254, 84, 0.4);
   box-shadow: 0 0 16px rgba(45, 254, 84, 0.2);
 }
 
 .demo-cell.p2-theme {
   --cell-color: #FF007F;
+  --orb-color: #FF007F;
   border-color: rgba(255, 0, 127, 0.4);
   box-shadow: 0 0 16px rgba(255, 0, 127, 0.2);
 }
 
 .demo-cell.p3-theme {
   --cell-color: #00F5FF;
+  --orb-color: #00F5FF;
   border-color: rgba(0, 245, 255, 0.4);
   box-shadow: 0 0 16px rgba(0, 245, 255, 0.2);
 }

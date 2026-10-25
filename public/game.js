@@ -550,7 +550,8 @@ function initSocket() {
   socket.on('rematch_vote',         onRematchVote);
   socket.on('error',                data => {
     const errorMap = {
-      'Room is full (max 4 players)': 'Room full aayiduchu da, 4 peru thaan aada mudiyum!',
+      'Room is full (max 8 players)': 'Room full aayiduchu da, 8 peru thaan aada mudiyum!',
+      'Room is full (max 4 players)': 'Room full aayiduchu da, 8 peru thaan aada mudiyum!',
       'Game has already started': 'Aatam already start aayiduchu da, velila nillu!',
       'Name already taken in this room': 'Indha peru already oruthan vachirukaan da, vera peru vai!',
       'Need at least 2 players to start': 'Aatam start panna innum oruthan venum da baadu (min 2 players)!',
@@ -561,6 +562,70 @@ function initSocket() {
     const msg = errorMap[data.message] || data.message || 'Server-la yedho kolaaru da!';
     showToast(msg, 'error');
   });
+}
+
+// ─── Tutorial Controller (Noobies Guide in Easy Tamil) ──────────────────────
+let activeTutorialStep = 1;
+const TOTAL_TUTORIAL_STEPS = 6;
+let returnScreenFromTutorial = 'landing';
+
+function getCurrentActiveScreen() {
+  const activeScreen = document.querySelector('.screen.active');
+  if (!activeScreen) return 'landing';
+  return activeScreen.id.replace('screen-', '');
+}
+
+function openTutorial(fromScreen) {
+  unlockAudioContext();
+  playToggleChime();
+  returnScreenFromTutorial = fromScreen || getCurrentActiveScreen() || 'landing';
+  if (returnScreenFromTutorial === 'tutorial') returnScreenFromTutorial = 'landing';
+  goToTutorialStep(1);
+  showScreen('tutorial');
+}
+
+function closeTutorial() {
+  unlockAudioContext();
+  playToggleChime();
+  showScreen(returnScreenFromTutorial || 'landing');
+}
+
+function goToTutorialStep(step) {
+  if (step < 1) step = 1;
+  if (step > TOTAL_TUTORIAL_STEPS) step = TOTAL_TUTORIAL_STEPS;
+  activeTutorialStep = step;
+
+  // Update tabs
+  document.querySelectorAll('.step-nav-btn').forEach(btn => {
+    const s = parseInt(btn.dataset.step, 10);
+    btn.classList.toggle('active', s === activeTutorialStep);
+  });
+
+  // Update step panes
+  document.querySelectorAll('.tutorial-step-pane').forEach((pane, idx) => {
+    pane.classList.toggle('active', (idx + 1) === activeTutorialStep);
+  });
+
+  // Update dots
+  document.querySelectorAll('#tutorial-dots .dot').forEach((dot, idx) => {
+    dot.classList.toggle('active', (idx + 1) === activeTutorialStep);
+  });
+
+  // Update footer button states
+  const prevBtn = $('tutorial-prev-step-btn');
+  const nextBtn = $('tutorial-next-step-btn');
+  if (prevBtn) prevBtn.disabled = (activeTutorialStep === 1);
+  if (nextBtn) {
+    if (activeTutorialStep === TOTAL_TUTORIAL_STEPS) {
+      nextBtn.textContent = 'Purinjiduchu! Vaa Polaam 🔥';
+    } else {
+      nextBtn.textContent = 'Adutha Step →';
+    }
+  }
+
+  // Scroll card to top smoothly
+  const card = document.querySelector('.tutorial-content-card');
+  if (card) card.scrollTop = 0;
 }
 
 // ─── UI Bindings ─────────────────────────────────────────────────────────────
@@ -576,6 +641,51 @@ function initUI() {
   $('freq-toggle-btn').addEventListener('click', cycleFrequency);
   $('ingame-slang-btn').addEventListener('click', toggleSlang);
   if ($('ingame-freq-btn')) $('ingame-freq-btn').addEventListener('click', cycleFrequency);
+
+  // Tutorial Launcher triggers
+  if ($('util-tutorial-btn')) $('util-tutorial-btn').addEventListener('click', () => openTutorial());
+  if ($('show-tutorial-btn')) $('show-tutorial-btn').addEventListener('click', () => openTutorial('landing'));
+  if ($('ingame-help-btn')) $('ingame-help-btn').addEventListener('click', () => openTutorial('game'));
+
+  // Tutorial Navigation listeners
+  if ($('tutorial-back-btn')) $('tutorial-back-btn').addEventListener('click', closeTutorial);
+  if ($('tutorial-start-playing-btn')) $('tutorial-start-playing-btn').addEventListener('click', closeTutorial);
+  if ($('tutorial-prev-step-btn')) {
+    $('tutorial-prev-step-btn').addEventListener('click', () => {
+      unlockAudioContext();
+      playToggleChime();
+      goToTutorialStep(activeTutorialStep - 1);
+    });
+  }
+  if ($('tutorial-next-step-btn')) {
+    $('tutorial-next-step-btn').addEventListener('click', () => {
+      unlockAudioContext();
+      playToggleChime();
+      if (activeTutorialStep >= TOTAL_TUTORIAL_STEPS) {
+        closeTutorial();
+      } else {
+        goToTutorialStep(activeTutorialStep + 1);
+      }
+    });
+  }
+
+  // Stepper buttons & dots
+  document.querySelectorAll('.step-nav-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      unlockAudioContext();
+      playToggleChime();
+      const s = parseInt(btn.dataset.step, 10);
+      if (s) goToTutorialStep(s);
+    });
+  });
+
+  document.querySelectorAll('#tutorial-dots .dot').forEach((dot, idx) => {
+    dot.addEventListener('click', () => {
+      unlockAudioContext();
+      playToggleChime();
+      goToTutorialStep(idx + 1);
+    });
+  });
 
   // Landing
   $('create-room-btn').addEventListener('click', createRoom);
@@ -624,10 +734,10 @@ function showScreen(name) {
     el.classList.add('active');
   }
 
-  // Hide floating global utils when game screen is active to keep in-game topbar perfectly clean
+  // Hide floating global utils when game or tutorial screen is active to keep view clean
   const globalUtils = document.querySelector('.global-utils');
   if (globalUtils) {
-    globalUtils.style.display = (name === 'game') ? 'none' : 'flex';
+    globalUtils.style.display = (name === 'game' || name === 'tutorial') ? 'none' : 'flex';
   }
 }
 
@@ -682,7 +792,7 @@ function onRoomJoined(data) {
   setHostControls(host);
   updateLobbyPlayers(players, hostId);
   $('lobby-status').textContent = host
-    ? 'Code-a un pasangalukku anupu da, 2-4 aalu koodanum!'
+    ? 'Code-a un pasangalukku anupu da, 2-8 aalu koodanum!'
     : 'Host payya start pandra varaikkum amaidhiyaa iru da...';
   showScreen('lobby');
 }
